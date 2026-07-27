@@ -10,8 +10,11 @@ import { DIGIT_COUNT, MIN_DIGIT, MAX_DIGIT } from '../constants/gameConstants.js
 /**
  * 0부터 9까지를 순서대로 담은 배열을 만든다.
  * 결과: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+ *
+ * 정답을 만들 때뿐 아니라 숫자 버튼 0~9를 그릴 때도 필요해서 export 한다.
+ * (같은 for문을 NumberPad에 한 번 더 쓰면, 나중에 범위가 바뀔 때 고칠 곳이 두 군데가 된다)
  */
-function createAllDigits() {
+export function createAllDigits() {
   const digitList = [];
 
   for (let digit = MIN_DIGIT; digit <= MAX_DIGIT; digit += 1) {

@@ -14,3 +14,14 @@ export const MAX_ATTEMPTS = 10;
 // 정답에 쓸 수 있는 숫자의 범위 (0 ~ 9)
 export const MIN_DIGIT = 0;
 export const MAX_DIGIT = 9;
+
+/*
+ * 게임이 가질 수 있는 상태.
+ * 'playing' 같은 글자를 코드 곳곳에 직접 적으면 오타가 나도 아무도 알려주지 않는다.
+ * (GAME_STATUS.PLAING 처럼 잘못 쓰면 undefined가 되어 바로 티가 난다)
+ */
+export const GAME_STATUS = {
+  PLAYING: 'playing',
+  WON: 'won',
+  LOST: 'lost',
+};
