@@ -5,7 +5,13 @@
  * 나중에 화면을 통째로 다시 만들어도 이 파일은 그대로 재사용된다.
  */
 
-import { MIN_DIGIT, MAX_DIGIT, DIGIT_RESULT } from '../constants/gameConstants.js';
+import {
+  MIN_DIGIT,
+  MAX_DIGIT,
+  MAX_ATTEMPTS,
+  DIGIT_RESULT,
+  GAME_STATUS,
+} from '../constants/gameConstants.js';
 
 /**
  * 0부터 9까지를 순서대로 담은 배열을 만든다.
@@ -179,4 +185,40 @@ export function scoreGuess(answer, guess) {
   const out = digitResults.filter((result) => result === DIGIT_RESULT.OUT).length;
 
   return { strike, ball, out };
+}
+
+/**
+ * 이번 시도 결과로 게임이 어떤 상태가 되는지 정한다.
+ *
+ * 채점(scoreGuess)과 승패 판단을 나눠둔 것은 그대로다.
+ * scoreGuess는 몇 스트라이크인지만 세고, 그래서 이겼는지는 이 함수가 정한다.
+ *
+ * 필요한 값을 전부 인자로 받는 순수 함수라 React와 아무 상관이 없어서 여기에 둔다.
+ * 특히 훅에서 부를 때는 state를 읽으면 안 된다. setHistory 같은 함수는 그 자리에서
+ * 즉시 반영되지 않으므로, 방금 계산한 값을 직접 넘겨야 마지막 시도에서 제대로 끝난다.
+ *
+ * @param {number} strike        이번 시도의 스트라이크 개수
+ * @param {number} attemptNumber 이번이 몇 번째 시도인지
+ * @param {number} digitCount    자릿수. 몇 스트라이크면 이기는지가 난이도마다 다르다
+ * @param {boolean} isUnlimitedMode 무제한 기회 모드인지
+ */
+export function decideNextStatus(strike, attemptNumber, digitCount, isUnlimitedMode) {
+  const hasWon = strike === digitCount;
+  if (hasWon) {
+    return GAME_STATUS.WON;
+  }
+
+  // 무제한 모드는 맞히기 전까지 절대 끝나지 않는다.
+  // 이기는 조건을 먼저 확인한 뒤에 이 줄이 오는 순서가 중요하다.
+  // 순서가 반대면 무제한 모드에서 정답을 맞혀도 게임이 안 끝난다.
+  if (isUnlimitedMode) {
+    return GAME_STATUS.PLAYING;
+  }
+
+  const isOutOfAttempts = attemptNumber >= MAX_ATTEMPTS;
+  if (isOutOfAttempts) {
+    return GAME_STATUS.LOST;
+  }
+
+  return GAME_STATUS.PLAYING;
 }

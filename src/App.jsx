@@ -10,7 +10,7 @@ import DifficultySelector from './components/DifficultySelector.jsx';
 import GuessInput from './components/GuessInput.jsx';
 import NumberPad from './components/NumberPad.jsx';
 import ResultBanner from './components/ResultBanner.jsx';
-import BeginnerModeToggle from './components/BeginnerModeToggle.jsx';
+import SettingToggle from './components/SettingToggle.jsx';
 import HistoryList from './components/HistoryList.jsx';
 import styles from './App.module.css';
 
@@ -21,6 +21,7 @@ function App() {
     currentGuess,
     history,
     gameStatus,
+    isUnlimitedMode,
     isBeginnerMode,
     attemptCount,
     isGuessFull,
@@ -33,16 +34,22 @@ function App() {
     handleSubmit,
     handleRestart,
     handleChangeDigitCount,
+    handleToggleUnlimitedMode,
     handleToggleBeginnerMode,
   } = useBaseballGame();
+
+  // 무제한 모드에서는 분모가 없으므로 "7회"라고만 적는다.
+  // 중첩 삼항연산자 대신 기본값을 먼저 정하고 조건에 맞으면 덮어쓴다.
+  let attemptText = `${attemptCount} / ${MAX_ATTEMPTS}`;
+  if (isUnlimitedMode) {
+    attemptText = `${attemptCount}회`;
+  }
 
   return (
     <main className={styles.app}>
       <header className={styles.header}>
         <h1 className={styles.title}>숫자 야구</h1>
-        <p className={styles.attemptCount}>
-          {attemptCount} / {MAX_ATTEMPTS}
-        </p>
+        <p className={styles.attemptCount}>{attemptText}</p>
       </header>
 
       {/*
@@ -78,12 +85,24 @@ function App() {
 
       {/*
         체크박스와 기록 목록을 한 덩어리로 묶는다.
-        체크박스가 바꾸는 대상이 바로 아래 목록이라는 것을 간격으로 보여주기 위해서다.
+        초보 모드 체크박스가 바꾸는 대상이 바로 아래 목록이라는 것을 간격으로 보여주기 위해서다.
+
+        같은 SettingToggle을 두 번 쓴다. 생김새와 동작이 똑같고 글자만 다르기 때문이다.
+        무제한 쪽에만 "새 판이 시작됩니다"를 적어둔 이유는, 눌렀을 때 결과가 서로 다르기
+        때문이다. 초보 모드는 판을 건드리지 않지만 무제한은 판을 새로 시작한다.
       */}
       <section className={styles.historySection}>
-        <BeginnerModeToggle
-          isBeginnerMode={isBeginnerMode}
+        <SettingToggle
+          label="초보 모드"
+          description="알아낸 숫자를 버튼에 색으로 표시"
+          isOn={isBeginnerMode}
           onToggle={handleToggleBeginnerMode}
+        />
+        <SettingToggle
+          label="무제한 기회"
+          description="맞힐 때까지 시도 (켜면 새 판이 시작됩니다)"
+          isOn={isUnlimitedMode}
+          onToggle={handleToggleUnlimitedMode}
         />
         <HistoryList history={history} isBeginnerMode={isBeginnerMode} />
       </section>
