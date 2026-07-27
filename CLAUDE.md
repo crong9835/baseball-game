@@ -26,22 +26,26 @@ npm run preview  # 빌드 결과 미리보기
 
 ```
 main.jsx → App.jsx → components/*.jsx
-                  ↘  utils/gameLogic.js → constants/gameConstants.js
+                  ↘  hooks/useBaseballGame.js → utils/gameLogic.js
+                                              ↘  constants/gameConstants.js
 ```
 
 | 위치 | 역할 |
 |---|---|
 | `src/constants/gameConstants.js` | **값만.** 함수 없음. `DIGIT_COUNT`, `MAX_ATTEMPTS`, `MIN_DIGIT`, `MAX_DIGIT`, `GAME_STATUS` |
 | `src/utils/gameLogic.js` | **React와 무관한 순수 함수.** `createAnswer()`, `judge()`, `createAllDigits()` |
+| `src/hooks/useBaseballGame.js` | **게임 진행 상태 전부.** state, 파생값, 조작 함수 |
 | `src/components/*.jsx` | 화면 조각. 각 파일은 같은 이름의 `*.module.css`와 짝을 이룸 |
-| `src/App.jsx` | 게임의 모든 state를 소유하고 자식에게 내려줌 |
+| `src/App.jsx` | 훅에서 받은 값을 화면 조각에 배분하기만 함. **여기에 state를 두지 마세요** |
 
 ### state 소유 규칙
 
-**모든 state는 `App.jsx`가 소유합니다.** 자식 컴포넌트는 state를 갖지 않습니다.
+**모든 state는 `useBaseballGame` 훅이 소유합니다.** App도 자식 컴포넌트도 `useState`를 갖지 않습니다.
 같은 값을 여러 컴포넌트가 봐야 하기 때문입니다(예: `currentGuess`는 `GuessInput`이 표시하고 `NumberPad`가 버튼 비활성화에 사용).
 
-App이 가진 state는 4개뿐입니다: `answer`, `currentGuess`, `history`, `gameStatus`.
+훅이 가진 state는 4개뿐입니다: `answer`, `currentGuess`, `history`, `gameStatus`.
+
+훅은 값과 핸들러만 돌려주고 **`setCurrentGuess` 같은 setter는 내보내지 않습니다.** 바깥에서 state를 직접 바꿀 수 있으면 게임 규칙을 한곳에서 보장할 수 없기 때문입니다. 새 조작이 필요하면 setter를 노출하지 말고 훅 안에 `handle...` 함수를 추가하세요.
 
 **state에서 계산할 수 있는 값은 절대 state로 만들지 마세요.** 매 렌더에서 그냥 계산합니다:
 
@@ -86,7 +90,7 @@ setGameStatus(decideNextStatus(result.strike, newRecord.attemptNumber));
    - 불린은 `is`/`has`로 시작 (`isGameOver`, `hasWon`, `isGuessFull`)
 4. 매직 넘버·매직 문자열 금지. 상수는 `gameConstants.js`에, CSS 값은 `index.css`의 CSS 변수에 모읍니다
 5. 복잡한 조건식은 이름 붙인 변수로 감싸기
-6. **파일이 100줄을 넘기면 먼저 알리고 분리 방안을 제안할 것** (현재 `src/App.jsx`가 126줄로 초과 상태)
+6. **파일이 100줄을 넘기면 먼저 알리고 분리 방안을 제안할 것** (현재 모든 파일이 100줄 이하)
 7. 모든 파일 맨 위에 역할을 설명하는 2~3줄 주석
 8. 주석은 "무엇을"이 아니라 **"왜 이렇게 했는지"**를 적을 것
 9. 변수·함수 이름은 영어, 주석과 설명은 한국어
