@@ -20,6 +20,8 @@ npm run preview  # 빌드 결과 미리보기
 
 **테스트 프레임워크는 의도적으로 도입하지 않았습니다.** `src/utils/gameLogic.js`는 React에 의존하지 않는 순수 함수라서, 검증이 필요하면 임시 `.mjs` 스크립트에서 `import` 해 `node`로 직접 실행하고 결과를 확인한 뒤 스크립트는 커밋하지 않습니다. (`package.json`에 `"type": "module"`이 있어 `import` 구문이 그대로 동작합니다)
 
+판정·힌트처럼 규칙이 걸린 것을 고쳤다면 화면만 보고 넘어가지 말고 이 방식으로 한 번 돌려보세요. 경계 경우(같은 숫자가 볼이었다가 스트라이크가 되는 등)는 화면에서 재현하기 번거롭습니다.
+
 ## 아키텍처
 
 의존 방향은 **한 방향**입니다. 역방향 import(예: `gameLogic.js`가 `App.jsx`를 참조)를 만들지 마세요.
@@ -32,20 +34,29 @@ main.jsx → App.jsx → components/*.jsx
 
 | 위치 | 역할 |
 |---|---|
-| `src/constants/gameConstants.js` | **값만.** 함수 없음. `DIGIT_COUNT`, `MAX_ATTEMPTS`, `MIN_DIGIT`, `MAX_DIGIT`, `GAME_STATUS` |
-| `src/utils/gameLogic.js` | **React와 무관한 순수 함수.** `createAnswer()`, `scoreGuess()`, `createAllDigits()` |
+| `src/constants/gameConstants.js` | **값만.** 함수 없음. `DIGIT_COUNT`, `MAX_ATTEMPTS`, `MIN_DIGIT`, `MAX_DIGIT`, `GAME_STATUS`, `DIGIT_RESULT` |
+| `src/utils/gameLogic.js` | **React와 무관한 순수 함수.** `createAllDigits()`, `createAnswer()`, `judgeEachDigit()`, `findDuplicateAttemptNumber()`, `collectDigitHints()`, `scoreGuess()` |
 | `src/hooks/useBaseballGame.js` | **게임 진행 상태 전부.** state, 파생값, 조작 함수 |
 | `src/components/*.jsx` | 화면 조각. 각 파일은 같은 이름의 `*.module.css`와 짝을 이룸 |
 | `src/App.jsx` | 훅에서 받은 값을 화면 조각에 배분하기만 함. **여기에 state를 두지 마세요** |
+
+컴포넌트는 `GuessInput`, `NumberPad`, `BeginnerModeToggle`, `ResultBanner`, `HistoryList` 다섯 개입니다.
 
 ### state 소유 규칙
 
 **모든 state는 `useBaseballGame` 훅이 소유합니다.** App도 자식 컴포넌트도 `useState`를 갖지 않습니다.
 같은 값을 여러 컴포넌트가 봐야 하기 때문입니다(예: `currentGuess`는 `GuessInput`이 표시하고 `NumberPad`가 버튼 비활성화에 사용).
 
-훅이 가진 state는 4개뿐입니다: `answer`, `currentGuess`, `history`, `gameStatus`.
+훅이 가진 state는 5개뿐입니다:
+
+- **게임 진행** — `answer`, `currentGuess`, `history`, `gameStatus`
+- **보기 설정** — `isBeginnerMode`
+
+`isBeginnerMode`만 성격이 다릅니다. 게임 진행이 아니라 취향이므로 **`handleRestart`에서 되돌리지 않습니다.** 새 판을 시작했다고 켜둔 초보 모드가 꺼지면 사용자는 버그로 느낍니다. 이건 실수가 아니니 "초기화가 빠졌다"고 고치지 마세요.
 
 훅은 값과 핸들러만 돌려주고 **`setCurrentGuess` 같은 setter는 내보내지 않습니다.** 바깥에서 state를 직접 바꿀 수 있으면 게임 규칙을 한곳에서 보장할 수 없기 때문입니다. 새 조작이 필요하면 setter를 노출하지 말고 훅 안에 `handle...` 함수를 추가하세요.
+
+같은 이유로 **화면에서 막은 조작은 훅에서도 막습니다.** 예를 들어 중복 조합은 확인 버튼을 비활성화하는 것과 별개로 `handleSubmit` 안에서도 한 번 더 걸러냅니다. 화면 쪽 조건이 하나 빠져도 규칙이 깨지지 않아야 하기 때문입니다.
 
 **state에서 계산할 수 있는 값은 절대 state로 만들지 마세요.** 매 렌더에서 그냥 계산합니다:
 
@@ -53,22 +64,54 @@ main.jsx → App.jsx → components/*.jsx
 const attemptCount = history.length;
 const isGuessFull = currentGuess.length === DIGIT_COUNT;
 const isGameOver = gameStatus !== GAME_STATUS.PLAYING;
+const digitHints = collectDigitHints(history);                          // 키패드 힌트
+const duplicateAttemptNumber = findDuplicateAttemptNumber(history, currentGuess);
 ```
+
+`digitHints`를 state로 만들면 "기록은 늘었는데 힌트는 그대로"인 버그가 바로 생깁니다. 진짜 값은 `history` 하나뿐입니다.
 
 **이 프로젝트에는 `useEffect`가 하나도 없고, 앞으로도 필요하지 않습니다.** 파생값을 `useEffect`로 동기화하려는 코드를 추가하지 마세요.
 
 ### 데이터는 아래로, 사건은 위로
 
-컴포넌트는 값(props)을 받아 표시만 하고, 사용자 조작은 App이 내려준 콜백(`onDigitClick`, `onBackspace`, `onClear`, `onRestart`)을 호출해 알립니다. 자식이 직접 게임 상태를 바꾸지 않습니다.
+컴포넌트는 값(props)을 받아 표시만 하고, 사용자 조작은 App이 내려준 콜백(`onDigitToggle`, `onBackspace`, `onSubmit`, `onToggle`)을 호출해 알립니다. 자식이 직접 게임 상태를 바꾸지 않습니다.
 
 `ResultBanner`는 App에서 조건부로 감싸지 않고, 스스로 `gameStatus`를 보고 진행 중이면 `return null` 합니다.
 
 ### 판정 규칙
 
 - 정답은 서로 다른 숫자 3개, 첫 자리 0 허용
-- 정답과 입력 모두 중복이 없으므로 `strike + ball + out === DIGIT_COUNT`가 항상 성립합니다. `scoreGuess()`의 단순한 자리별 비교가 성립하는 근거입니다
+- 정답과 입력 모두 중복이 없으므로 한 자리는 스트라이크·볼·아웃 중 정확히 하나입니다. 그래서 각 자리를 옆자리와 상관없이 따로 판정해도 되고, `strike + ball + out === DIGIT_COUNT`가 항상 성립합니다
+- **판정 규칙은 `judgeEachDigit()` 한 곳에만 있습니다.** `scoreGuess()`는 그 결과를 `filter().length`로 세기만 합니다. 규칙을 두 군데 두면 한쪽만 고쳤을 때 화면의 색과 점수가 서로 어긋납니다
 - `scoreGuess()`는 **채점만** 합니다. 승패 판단은 `useBaseballGame`의 `decideNextStatus()`가 맡습니다. 이 경계를 섞지 마세요
-- 화면 표기는 참고 사이트(https://sciencelove.com/2653)를 그대로 따라 **`S:1 B:1 OUT:1`** 형식으로 셋을 항상 모두 표시합니다
+- 화면 표기는 **한글 야구 용어**입니다 (`2스트라이크 1볼`). 0개인 것은 적지 않고, 둘 다 0이면 `아웃`이라고 적습니다. 예전에는 참고 사이트(https://sciencelove.com/2653)를 따라 `S:1 B:1 OUT:1`로 적었지만, 야구 규칙을 모르면 읽을 수 없어서 바꿨습니다
+
+### 초보 모드
+
+체크박스로 켜고 끄며 **기본값은 꺼짐**입니다. 켜면 색으로 힌트를 줍니다.
+
+| 곳 | 표시 |
+|---|---|
+| **숫자 버튼(핵심)** | 지금까지 알아낸 사실을 배경색으로 — 빨강=스트라이크 확정, 노랑=정답에 있음, 회색=정답에 없음, 흰색=아직 안 써봄 |
+| 시도 기록 | 입력한 숫자 자체를 같은 색으로. 스트라이크에는 밑줄도 |
+
+**힌트의 핵심은 숫자 버튼입니다.** 지나간 기록에만 색을 칠하면 "다음에 뭘 누를까"에 도움이 되지 않습니다. 누르기 직전에 보여야 합니다.
+
+힌트는 `collectDigitHints(history)`가 만듭니다. 같은 숫자가 나중에 볼로 다시 나와도 **이미 확정된 스트라이크를 덮어쓰지 않습니다.**
+
+색만으로 구분하면 색을 구별하기 어려운 사람에게는 차이가 없으므로, 스트라이크에는 밑줄을, 못 누르는 버튼에는 `opacity`를 함께 씁니다.
+
+### 숫자 버튼은 토글입니다
+
+이미 고른 숫자를 다시 누르면 **뺍니다.** 그래서 고른 숫자를 `disabled`로 막지 않습니다. 세 자리를 다 채운 뒤에는 고르지 않은 숫자만 막습니다.
+
+"초기화" 버튼은 이 토글이 생기면서 없앴습니다. 되살리지 마세요.
+
+버튼 배치는 `[지우기] [확인]` 한 줄 아래 `[다시하기]` 한 줄입니다. **확인은 `NumberPad` 안에, 다시하기는 `App`에 있습니다.** 다시하기는 숫자 입력과 무관한 조작이라 숫자 패드에 넣지 않았습니다. 다시하기는 게임 중에도 항상 보이므로 `ResultBanner`에는 따로 버튼을 두지 않습니다(같은 버튼이 두 개가 됩니다).
+
+### 같은 조합은 두 번 못 냅니다
+
+`findDuplicateAttemptNumber()`가 예전에 낸 조합을 찾아내면 안내 문구를 띄우고 확인 버튼을 막습니다. 결과가 뻔한데 시도 횟수만 날아가기 때문입니다. **순서가 다르면 다른 조합입니다** (`123`과 `321`은 별개).
 
 ### `setState`는 즉시 반영되지 않습니다
 
@@ -91,7 +134,7 @@ setGameStatus(decideNextStatus(result.strike, newRecord.attemptNumber));
    - 불린은 `is`/`has`로 시작 (`isGameOver`, `hasWon`, `isGuessFull`)
 4. 매직 넘버·매직 문자열 금지. 상수는 `gameConstants.js`에, CSS 값은 `index.css`의 CSS 변수에 모읍니다
 5. 복잡한 조건식은 이름 붙인 변수로 감싸기
-6. **파일이 100줄을 넘기면 먼저 알리고 분리 방안을 제안할 것** (현재 모든 파일이 100줄 이하)
+6. **파일의 "코드"가 100줄을 넘기면 먼저 알리고 분리 방안을 제안할 것.** 주석과 빈 줄은 세지 않습니다 — 이 프로젝트는 주석이 두꺼운 것이 의도라서, 전체 줄로 세면 설명이 많은 파일이 억울하게 걸립니다. 현재 가장 큰 파일이 코드 89줄(`useBaseballGame.js`)이고, 전체 줄로는 174줄인 `gameLogic.js`도 코드는 68줄입니다
 7. 모든 파일 맨 위에 역할을 설명하는 2~3줄 주석
 8. 주석은 "무엇을"이 아니라 **"왜 이렇게 했는지"**를 적을 것
 9. 변수·함수 이름은 영어, 주석과 설명은 한국어
@@ -103,6 +146,14 @@ setGameStatus(decideNextStatus(result.strike, newRecord.attemptNumber));
 - 색상·간격·radius·터치 크기는 `src/index.css`의 CSS 변수 사용. 컴포넌트 CSS에 원시 숫자를 직접 쓰지 않기
 - 세로 간격은 `margin`이 아니라 부모의 `gap`으로 관리
 - 모바일 우선. 누르는 대상은 `--button-min-size`(48px) 이상
+- **나타났다 사라지는 요소는 자리를 미리 비워둘 것** (`NumberPad`의 `.notice`가 `min-height`를 갖는 이유). 문구가 뜰 때 아래 버튼이 밀리면 누르려던 순간에 버튼이 도망갑니다
+- **선택 표시는 `border`를 굵히지 말고 `box-shadow: inset`으로.** border는 요소 크기를 바꿔서 누를 때마다 화면이 흔들립니다
+
+#### 규칙 순서에 주의
+
+`NumberPad.module.css`에서 **`.digitButton:disabled`는 반드시 힌트 규칙(`.digitButton.strikeHint` 등)보다 위에 있어야 합니다.** 둘은 조건 개수가 똑같아서 나중에 쓴 쪽이 이깁니다. 순서가 뒤집히면 세 자리를 다 채우는 순간 힌트 색이 전부 회색으로 덮입니다. 실제로 그 버그가 있었습니다.
+
+그래서 "못 누른다"는 표시는 배경색이 아니라 `opacity`로 줍니다. 색과 무관하게 겹쳐지므로 힌트 색을 지우지 않습니다.
 
 ## 설명 방식 (소유자가 학습 중이므로 중요)
 
@@ -122,7 +173,6 @@ setGameStatus(decideNextStatus(result.strike, newRecord.attemptNumber));
 ## 지금 구현하지 않을 것 (요청 전까지 미리 만들지 말 것)
 
 - 4자리/5자리 난이도 선택
-- 초보 모드(스트라이크 빨강 / 볼 노랑 색상 표시)
 - 숫자 버튼 롱프레스로 X 표시
 - 시도 횟수 무제한 모드
 - 배포, 테스트 프레임워크 도입
