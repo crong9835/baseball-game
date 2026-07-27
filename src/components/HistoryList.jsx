@@ -8,11 +8,11 @@ import styles from './HistoryList.module.css';
 
 /**
  * 판정 결과를 화면에 쓸 조각들로 바꾼다.
- * 예: { strike: 2, ball: 1 } -> [{ text: '2스트라이크' }, { text: '1볼' }]
+ * 예: { strike: 1, ball: 1, out: 1 } -> 1스트라이크 / 1볼 / 1아웃
  *
- * 예전에는 "S:2 B:1 OUT:0"처럼 셋을 항상 다 적었지만,
- * 야구 규칙을 모르면 읽을 수 없고 0인 값까지 눈에 들어와 오히려 방해가 됐다.
+ * 예전에는 "S:1 B:1 OUT:1"처럼 적었지만 야구 규칙을 모르면 읽을 수 없었다.
  * 그래서 한글로 풀어쓰고, 0개인 것은 아예 적지 않는다.
+ * (0인 값까지 늘어놓으면 정작 봐야 할 숫자가 묻힌다)
  *
  * 조각을 나누는 이유는 스트라이크와 볼에 서로 다른 색을 입혀야 하기 때문이다.
  * 문자열 하나로 만들면 그 안에서 일부만 색을 바꿀 수 없다.
@@ -28,11 +28,12 @@ function createResultParts(record) {
     parts.push({ text: `${record.ball}볼`, digitResult: DIGIT_RESULT.BALL });
   }
 
-  // 둘 다 0이면 오른쪽이 텅 비어 "아직 판정이 안 됐나?"로 보인다. 아웃이라고 분명히 적는다.
-  if (parts.length === 0) {
-    parts.push({ text: '아웃', digitResult: DIGIT_RESULT.OUT });
+  if (record.out > 0) {
+    parts.push({ text: `${record.out}아웃`, digitResult: DIGIT_RESULT.OUT });
   }
 
+  // 셋을 더하면 항상 DIGIT_COUNT(3)이므로 하나는 반드시 0보다 크다.
+  // 그래서 parts가 빈 배열이 되는 경우는 없고, 빈 칸을 채울 예외 처리도 필요 없다.
   return parts;
 }
 

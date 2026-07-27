@@ -84,7 +84,7 @@ const duplicateAttemptNumber = findDuplicateAttemptNumber(history, currentGuess)
 - 정답과 입력 모두 중복이 없으므로 한 자리는 스트라이크·볼·아웃 중 정확히 하나입니다. 그래서 각 자리를 옆자리와 상관없이 따로 판정해도 되고, `strike + ball + out === DIGIT_COUNT`가 항상 성립합니다
 - **판정 규칙은 `judgeEachDigit()` 한 곳에만 있습니다.** `scoreGuess()`는 그 결과를 `filter().length`로 세기만 합니다. 규칙을 두 군데 두면 한쪽만 고쳤을 때 화면의 색과 점수가 서로 어긋납니다
 - `scoreGuess()`는 **채점만** 합니다. 승패 판단은 `useBaseballGame`의 `decideNextStatus()`가 맡습니다. 이 경계를 섞지 마세요
-- 화면 표기는 **한글 야구 용어**입니다 (`2스트라이크 1볼`). 0개인 것은 적지 않고, 둘 다 0이면 `아웃`이라고 적습니다. 예전에는 참고 사이트(https://sciencelove.com/2653)를 따라 `S:1 B:1 OUT:1`로 적었지만, 야구 규칙을 모르면 읽을 수 없어서 바꿨습니다
+- 화면 표기는 **한글 야구 용어**입니다 (`1스트라이크 1볼 1아웃`). **0개인 것은 적지 않습니다** — 0까지 늘어놓으면 정작 봐야 할 숫자가 묻히기 때문입니다. 셋을 더하면 항상 3이라 하나는 반드시 0보다 크고, 그래서 오른쪽이 텅 비는 경우는 없습니다. 예전에는 참고 사이트(https://sciencelove.com/2653)를 따라 `S:1 B:1 OUT:1`로 적었지만 야구 규칙을 모르면 읽을 수 없어서 바꿨습니다
 
 ### 초보 모드
 
