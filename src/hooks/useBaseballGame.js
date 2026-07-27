@@ -7,7 +7,7 @@
 import { useState } from 'react';
 
 import { DIGIT_COUNT, MAX_ATTEMPTS, GAME_STATUS } from '../constants/gameConstants.js';
-import { createAnswer, scoreGuess } from '../utils/gameLogic.js';
+import { createAnswer, scoreGuess, judgeEachDigit } from '../utils/gameLogic.js';
 
 /**
  * 이번 시도 결과로 게임이 어떤 상태가 되는지 정한다.
@@ -48,7 +48,19 @@ export function useBaseballGame() {
   const isGuessFull = currentGuess.length === DIGIT_COUNT;
   const isGameOver = gameStatus !== GAME_STATUS.PLAYING;
 
-  function handleDigitClick(digit) {
+  /*
+   * 같은 숫자를 한 번 더 누르면 넣지 않고 뺀다.
+   * 잘못 누른 숫자를 고치려고 "지우기"까지 손을 옮기지 않아도 되게 하려는 것이다.
+   */
+  function handleDigitToggle(digit) {
+    const isAlreadyPicked = currentGuess.includes(digit);
+
+    if (isAlreadyPicked) {
+      // filter는 조건에 맞는 것만 남긴 "새 배열"을 돌려준다. 원본은 그대로다.
+      setCurrentGuess(currentGuess.filter((pickedDigit) => pickedDigit !== digit));
+      return;
+    }
+
     // push로 배열을 직접 바꾸면 React가 변화를 알아채지 못하므로 항상 새 배열을 만든다.
     setCurrentGuess([...currentGuess, digit]);
   }
@@ -63,9 +75,15 @@ export function useBaseballGame() {
 
   function handleSubmit() {
     const score = scoreGuess(answer, currentGuess);
+
+    // 자리별 판정을 기록에 같이 담아둔다.
+    // 정답은 "다시 시작"에서 바뀌므로, 나중에 다시 계산하면 옛 기록이 엉뚱하게 칠해진다.
+    const digitResults = judgeEachDigit(answer, currentGuess);
+
     const newRecord = {
       attemptNumber: attemptCount + 1,
       guess: currentGuess,
+      digitResults,
       strike: score.strike,
       ball: score.ball,
       out: score.out,
@@ -101,7 +119,7 @@ export function useBaseballGame() {
     attemptCount,
     isGuessFull,
     isGameOver,
-    handleDigitClick,
+    handleDigitToggle,
     handleBackspace,
     handleClear,
     handleSubmit,

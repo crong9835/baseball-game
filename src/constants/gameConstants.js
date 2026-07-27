@@ -25,3 +25,13 @@ export const GAME_STATUS = {
   WON: 'won',
   LOST: 'lost',
 };
+
+/*
+ * 입력한 숫자 한 개가 받을 수 있는 판정.
+ * 정답에도 입력에도 중복이 없으므로 한 자리는 항상 이 셋 중 정확히 하나다.
+ */
+export const DIGIT_RESULT = {
+  STRIKE: 'strike',
+  BALL: 'ball',
+  OUT: 'out',
+};

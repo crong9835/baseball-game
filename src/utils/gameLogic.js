@@ -5,7 +5,7 @@
  * 나중에 화면을 통째로 다시 만들어도 이 파일은 그대로 재사용된다.
  */
 
-import { DIGIT_COUNT, MIN_DIGIT, MAX_DIGIT } from '../constants/gameConstants.js';
+import { DIGIT_COUNT, MIN_DIGIT, MAX_DIGIT, DIGIT_RESULT } from '../constants/gameConstants.js';
 
 /**
  * 0부터 9까지를 순서대로 담은 배열을 만든다.
@@ -66,37 +66,58 @@ export function createAnswer() {
 }
 
 /**
- * 사용자가 낸 답을 정답과 비교해 채점한다.
- *
- * 채점만 하고 승패는 판단하지 않는다.
- * 이겼는지 졌는지는 이 결과를 받아서 useBaseballGame의 decideNextStatus가 정한다.
+ * 입력한 숫자를 한 자리씩 판정한다.
  *
  * 정답도 입력도 중복 숫자가 없기 때문에(입력은 화면에서 중복을 막는다)
  * 한 자리는 스트라이크·볼·아웃 중 정확히 하나에만 해당한다.
- * 그래서 strike + ball + out은 항상 DIGIT_COUNT(3)가 된다.
+ * 그래서 각 자리를 옆자리와 상관없이 따로 판정해도 결과가 어긋나지 않는다.
  *
  * @param {number[]} answer 정답 (예: [1, 2, 3])
- * @param {number[]} guess  사용자 입력 (예: [1, 3, 4])
- * @returns {{ strike: number, ball: number, out: number }} 예: { strike: 1, ball: 1, out: 1 }
+ * @param {number[]} guess  사용자 입력 (예: [3, 2, 1])
+ * @returns {string[]} 자리 순서대로의 판정 (예: ['ball', 'strike', 'ball'])
  */
-export function scoreGuess(answer, guess) {
-  let strike = 0;
-  let ball = 0;
-  let out = 0;
+export function judgeEachDigit(answer, guess) {
+  const digitResults = [];
 
   // entries()는 [몇 번째 자리인지, 그 자리에 넣은 숫자]를 한 쌍으로 꺼내준다.
   for (const [position, guessedDigit] of guess.entries()) {
     const isSamePosition = answer[position] === guessedDigit;
     const isInAnswer = answer.includes(guessedDigit);
 
+    // 기본값을 먼저 정하고 조건에 맞을 때만 덮어쓴다. 중첩 삼항연산자를 피하기 위해서다.
+    let digitResult = DIGIT_RESULT.OUT;
     if (isSamePosition) {
-      strike += 1;
+      digitResult = DIGIT_RESULT.STRIKE;
     } else if (isInAnswer) {
-      ball += 1;
-    } else {
-      out += 1;
+      digitResult = DIGIT_RESULT.BALL;
     }
+
+    digitResults.push(digitResult);
   }
+
+  return digitResults;
+}
+
+/**
+ * 사용자가 낸 답을 정답과 비교해 채점한다.
+ *
+ * 채점만 하고 승패는 판단하지 않는다.
+ * 이겼는지 졌는지는 이 결과를 받아서 useBaseballGame의 decideNextStatus가 정한다.
+ *
+ * 판정 규칙을 여기에 다시 쓰지 않고 judgeEachDigit이 낸 결과를 세기만 한다.
+ * 같은 규칙이 두 군데 있으면 한쪽만 고쳤을 때 색과 점수가 서로 어긋나기 때문이다.
+ * strike + ball + out은 항상 DIGIT_COUNT(3)가 된다.
+ *
+ * @param {number[]} answer 정답 (예: [1, 2, 3])
+ * @param {number[]} guess  사용자 입력 (예: [1, 3, 4])
+ * @returns {{ strike: number, ball: number, out: number }} 예: { strike: 1, ball: 1, out: 1 }
+ */
+export function scoreGuess(answer, guess) {
+  const digitResults = judgeEachDigit(answer, guess);
+
+  const strike = digitResults.filter((result) => result === DIGIT_RESULT.STRIKE).length;
+  const ball = digitResults.filter((result) => result === DIGIT_RESULT.BALL).length;
+  const out = digitResults.filter((result) => result === DIGIT_RESULT.OUT).length;
 
   return { strike, ball, out };
 }
