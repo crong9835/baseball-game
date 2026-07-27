@@ -168,7 +168,16 @@ setGameStatus(decideNextStatus(result.strike, newRecord.attemptNumber));
 
 - **한 번에 한 단계씩.** 단계가 끝나면 무엇을 만들었는지 요약하고, 소유자가 확인할 때까지 다음으로 넘어가지 않습니다
 - 각 단계가 끝날 때마다 커밋합니다. **`push`는 명시적으로 요청받았을 때만**
-- 커밋 메시지는 영어 Conventional 형식 (`feat:`, `chore:`, `style:`, `refactor:`)
+- 커밋 메시지는 **앞의 종류 표시만 영어**, 나머지는 전부 한국어로 씁니다. 소유자가 나중에 읽고 무슨 작업이었는지 알 수 있어야 하기 때문입니다
+
+  ```
+  feat: 초보 모드 켜고 끄는 체크박스 추가
+
+  기록 목록 위에 체크박스를 두고 isBeginnerMode를 useBaseballGame에 넣었다.
+  초보 모드는 게임 진행이 아니라 보기 설정이라 handleRestart에서 되돌리지 않는다.
+  ```
+
+  종류 표시는 `feat:`(기능 추가), `fix:`(버그 수정), `refactor:`(동작은 그대로, 구조만 정리), `docs:`(문서), `style:`(모양만), `chore:`(설정·잡일)
 
 ## 지금 구현하지 않을 것 (요청 전까지 미리 만들지 말 것)
 
