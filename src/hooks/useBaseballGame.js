@@ -12,6 +12,7 @@ import {
   scoreGuess,
   judgeEachDigit,
   collectDigitHints,
+  findDuplicateAttemptNumber,
 } from '../utils/gameLogic.js';
 
 /**
@@ -57,6 +58,11 @@ export function useBaseballGame() {
   // history가 바뀌면 이 훅이 다시 실행되면서 저절로 다시 계산된다.
   const digitHints = collectDigitHints(history);
 
+  // 세 자리를 다 채우기 전에는 예전 조합과 길이가 달라 절대 같아지지 않으므로,
+  // "입력이 다 찼는지"를 따로 확인하지 않아도 된다.
+  const duplicateAttemptNumber = findDuplicateAttemptNumber(history, currentGuess);
+  const isDuplicateGuess = duplicateAttemptNumber !== null;
+
   /*
    * 같은 숫자를 한 번 더 누르면 넣지 않고 뺀다.
    * 잘못 누른 숫자를 고치려고 "지우기"까지 손을 옮기지 않아도 되게 하려는 것이다.
@@ -79,6 +85,12 @@ export function useBaseballGame() {
   }
 
   function handleSubmit() {
+    // 확인 버튼도 막아두지만, 규칙을 지키는 책임은 이 훅에 있다.
+    // 화면 쪽 조건이 하나 빠지더라도 같은 조합이 기록에 두 번 들어가지 않게 한다.
+    if (isDuplicateGuess) {
+      return;
+    }
+
     const score = scoreGuess(answer, currentGuess);
 
     // 자리별 판정을 기록에 같이 담아둔다.
@@ -125,6 +137,8 @@ export function useBaseballGame() {
     isGuessFull,
     isGameOver,
     digitHints,
+    duplicateAttemptNumber,
+    isDuplicateGuess,
     handleDigitToggle,
     handleBackspace,
     handleSubmit,

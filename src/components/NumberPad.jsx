@@ -55,6 +55,8 @@ function getDigitButtonClassName(isPicked, digitHint, isBeginnerMode) {
 function NumberPad({
   currentGuess,
   digitHints,
+  duplicateAttemptNumber,
+  isDuplicateGuess,
   isBeginnerMode,
   isGuessFull,
   isGameOver,
@@ -63,6 +65,7 @@ function NumberPad({
   onSubmit,
 }) {
   const hasNoInput = currentGuess.length === 0;
+  const canSubmit = isGuessFull && !isDuplicateGuess && !isGameOver;
 
   return (
     <div className={styles.numberPad}>
@@ -93,6 +96,14 @@ function NumberPad({
       </div>
 
       {/*
+        안내 문구가 나타났다 사라질 때 아래 버튼이 위아래로 움직이면
+        누르려던 순간에 확인 버튼이 도망간다. 그래서 문구가 없어도 자리는 항상 비워둔다.
+      */}
+      <p className={styles.notice}>
+        {isDuplicateGuess && `${duplicateAttemptNumber}회에 이미 낸 조합입니다`}
+      </p>
+
+      {/*
         "초기화"는 없앴다. 숫자를 다시 눌러 뺄 수 있게 되면서 쓸 일이 거의 없어졌고,
         그 자리에 손가락이 가장 자주 가는 "확인"을 두는 편이 훨씬 편하기 때문이다.
       */}
@@ -108,7 +119,7 @@ function NumberPad({
         <button
           type="button"
           className={styles.submitButton}
-          disabled={!isGuessFull || isGameOver}
+          disabled={!canSubmit}
           onClick={onSubmit}
         >
           확인

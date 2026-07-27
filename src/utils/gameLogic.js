@@ -99,6 +99,30 @@ export function judgeEachDigit(answer, guess) {
 }
 
 /**
+ * 지금 입력이 예전에 낸 조합과 똑같은지 찾는다.
+ *
+ * 같은 조합을 또 내면 결과가 뻔한데 시도 횟수만 한 번 날아간다.
+ * 그래서 확인을 누르기 전에 미리 알려주려고 몇 회에 냈던 조합인지까지 돌려준다.
+ *
+ * 배열끼리는 ===로 비교할 수 없다(내용이 같아도 다른 배열이면 false).
+ * 그래서 [3,4,5]를 '345' 같은 문자열로 바꿔서 비교한다.
+ * 숫자가 모두 한 글자(0~9)라서 이어 붙여도 헷갈릴 일이 없다.
+ *
+ * @returns {number|null} 같은 조합을 냈던 회차, 없으면 null
+ */
+export function findDuplicateAttemptNumber(history, guess) {
+  const guessText = guess.join('');
+
+  for (const record of history) {
+    if (record.guess.join('') === guessText) {
+      return record.attemptNumber;
+    }
+  }
+
+  return null;
+}
+
+/**
  * 지금까지의 기록을 훑어서 "0~9 각 숫자에 대해 무엇을 알아냈는가"를 모은다.
  *
  * 이것이 초보 모드가 주는 힌트의 알맹이다.

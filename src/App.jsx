@@ -24,6 +24,8 @@ function App() {
     isGuessFull,
     isGameOver,
     digitHints,
+    duplicateAttemptNumber,
+    isDuplicateGuess,
     handleDigitToggle,
     handleBackspace,
     handleSubmit,
@@ -45,6 +47,8 @@ function App() {
       <NumberPad
         currentGuess={currentGuess}
         digitHints={digitHints}
+        duplicateAttemptNumber={duplicateAttemptNumber}
+        isDuplicateGuess={isDuplicateGuess}
         isBeginnerMode={isBeginnerMode}
         isGuessFull={isGuessFull}
         isGameOver={isGameOver}
