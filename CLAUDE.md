@@ -35,12 +35,14 @@ main.jsx → App.jsx → components/*.jsx
 | 위치 | 역할 |
 |---|---|
 | `src/constants/gameConstants.js` | **값만.** 함수 없음. `DIGIT_COUNT_OPTIONS`, `DEFAULT_DIGIT_COUNT`, `MAX_ATTEMPTS`, `MIN_DIGIT`, `MAX_DIGIT`, `GAME_STATUS`, `DIGIT_RESULT` |
-| `src/utils/gameLogic.js` | **React와 무관한 순수 함수.** `createAllDigits()`, `createAnswer(digitCount)`, `judgeEachDigit()`, `findDuplicateAttemptNumber()`, `collectDigitHints()`, `scoreGuess()` |
+| `src/utils/gameLogic.js` | **React와 무관한 순수 함수.** `createAllDigits()`, `createAnswer(digitCount)`, `judgeEachDigit()`, `findDuplicateAttemptNumber()`, `collectDigitHints()`, `scoreGuess()`, `decideNextStatus()` |
 | `src/hooks/useBaseballGame.js` | **게임 진행 상태 전부.** state, 파생값, 조작 함수 |
 | `src/components/*.jsx` | 화면 조각. 각 파일은 같은 이름의 `*.module.css`와 짝을 이룸 |
 | `src/App.jsx` | 훅에서 받은 값을 화면 조각에 배분하기만 함. **여기에 state를 두지 마세요** |
 
-컴포넌트는 `DifficultySelector`, `GuessInput`, `NumberPad`, `BeginnerModeToggle`, `ResultBanner`, `HistoryList` 여섯 개입니다.
+컴포넌트는 `DifficultySelector`, `GuessInput`, `NumberPad`, `SettingToggle`, `ResultBanner`, `HistoryList` 여섯 개입니다.
+
+`SettingToggle`만 **같은 컴포넌트를 두 번 씁니다**(초보 모드, 무제한 기회). 생김새와 동작이 똑같고 글자만 달라서, 파일을 복사해 두는 대신 `label`·`description`을 props로 받게 했습니다. 설정이 하나 더 늘어도 `App.jsx`에 다섯 줄만 추가하면 됩니다.
 
 **자릿수는 `gameLogic.js`가 스스로 알지 못합니다.** 자릿수를 쓰는 함수는 인자로 받고(`createAnswer(digitCount)`), 나머지는 넘겨받은 배열의 길이대로 돕니다. 난이도가 3·4·5로 달라져도 이 파일이 고쳐지지 않는 이유입니다.
 
@@ -49,14 +51,14 @@ main.jsx → App.jsx → components/*.jsx
 **모든 state는 `useBaseballGame` 훅이 소유합니다.** App도 자식 컴포넌트도 `useState`를 갖지 않습니다.
 같은 값을 여러 컴포넌트가 봐야 하기 때문입니다(예: `currentGuess`는 `GuessInput`이 표시하고 `NumberPad`가 버튼 비활성화에 사용).
 
-훅이 가진 state는 6개뿐입니다:
+훅이 가진 state는 7개뿐이고, 두 갈래로 나뉩니다:
 
-- **게임 진행** — `digitCount`, `answer`, `currentGuess`, `history`, `gameStatus`
-- **보기 설정** — `isBeginnerMode`
+- **게임 규칙** — `digitCount`, `isUnlimitedMode`, `isBeginnerMode`
+- **게임 진행** — `answer`, `currentGuess`, `history`, `gameStatus`
 
-`isBeginnerMode`만 성격이 다릅니다. 게임 진행이 아니라 취향이므로 **새 판을 시작할 때 되돌리지 않습니다.** 새 판을 시작했다고 켜둔 초보 모드가 꺼지면 사용자는 버그로 느낍니다. 이건 실수가 아니니 "초기화가 빠졌다"고 고치지 마세요.
+**규칙 셋은 바뀌는 순간 새 판이 시작됩니다. 예외는 없습니다.** 판 중간에 규칙이 바뀌면 앞의 기록과 뒤의 기록이 서로 다른 조건으로 쌓이기 때문입니다.
 
-`digitCount`는 '보기 설정'이 아니라 **게임 진행** 쪽입니다. 정답의 길이를 정하는 값이라, 바뀌면 진행 중이던 판을 이어갈 수 없기 때문입니다.
+> 초보 모드는 예전에 '보기 설정'으로 보고 판을 건드리지 않았습니다. **2026년 7월에 바꿨습니다.** 나중에 순위를 매기는 기능을 붙이려면 한 판이 처음부터 끝까지 같은 조건이어야 하는데, 힌트를 보며 절반을 풀고 중간에 끈 판이 "힌트 없이 6회"로 남으면 그건 기록이 아니라 구멍이기 때문입니다. 되돌리지 마세요.
 
 훅은 값과 핸들러만 돌려주고 **`setCurrentGuess` 같은 setter는 내보내지 않습니다.** 바깥에서 state를 직접 바꿀 수 있으면 게임 규칙을 한곳에서 보장할 수 없기 때문입니다. 새 조작이 필요하면 setter를 노출하지 말고 훅 안에 `handle...` 함수를 추가하세요.
 
@@ -87,25 +89,46 @@ const duplicateAttemptNumber = findDuplicateAttemptNumber(history, currentGuess)
 - 정답은 서로 다른 숫자 `digitCount`개(3·4·5), 첫 자리 0 허용
 - 정답과 입력 모두 중복이 없으므로 한 자리는 스트라이크·볼·아웃 중 정확히 하나입니다. 그래서 각 자리를 옆자리와 상관없이 따로 판정해도 되고, `strike + ball + out`이 항상 자릿수와 같습니다
 - **판정 규칙은 `judgeEachDigit()` 한 곳에만 있습니다.** `scoreGuess()`는 그 결과를 `filter().length`로 세기만 합니다. 규칙을 두 군데 두면 한쪽만 고쳤을 때 화면의 색과 점수가 서로 어긋납니다
-- `scoreGuess()`는 **채점만** 합니다. 승패 판단은 `useBaseballGame`의 `decideNextStatus()`가 맡습니다. 이 경계를 섞지 마세요
+- `scoreGuess()`는 **채점만** 합니다. 승패 판단은 같은 파일의 `decideNextStatus()`가 맡습니다. 둘 다 `gameLogic.js`에 있지만 하는 일은 다릅니다. 이 경계를 섞지 마세요
 - 화면 표기는 **한글 야구 용어**입니다 (`1스트라이크 1볼 1아웃`). **0개인 것은 적지 않습니다** — 0까지 늘어놓으면 정작 봐야 할 숫자가 묻히기 때문입니다. 셋을 더하면 항상 자릿수라 하나는 반드시 0보다 크고, 그래서 오른쪽이 텅 비는 경우는 없습니다. 예전에는 참고 사이트(https://sciencelove.com/2653)를 따라 `S:1 B:1 OUT:1`로 적었지만 야구 규칙을 모르면 읽을 수 없어서 바꿨습니다
 
-### 난이도 선택
+### 게임 규칙 설정 세 가지
+
+`digitCount`(자릿수), `isUnlimitedMode`(무제한 기회), `isBeginnerMode`(초보 모드) 셋은 **전부 같은 취급**입니다. 바꾸면 그 자리에서 새 판이 시작됩니다.
+
+판을 새로 까는 코드는 **`startNewGame(nextSettings)` 하나뿐**입니다. '다시하기'와 설정 셋이 하는 일이 정확히 같기 때문입니다. 넷으로 나눠 쓰면 나중에 초기화할 것이 하나 늘었을 때 한 군데를 빠뜨립니다.
+
+```js
+function handleToggleUnlimitedMode() {
+  startNewGame({ digitCount, isUnlimitedMode: !isUnlimitedMode, isBeginnerMode });
+}
+```
+
+**값을 하나씩 나열하지 않고 객체로 받습니다.** `startNewGame(3, false, true)`라고 쓰면 두 번째 `false`가 무엇인지 알 수 없습니다. 부르는 쪽에서 이름이 보여야 무엇이 바뀌는 조작인지 한눈에 읽힙니다.
+
+체크박스 설명에 `· 바꾸면 새 판`을 적어둔 것도 같은 이유입니다. 눌렀을 때 판이 사라지는데 글자에 안 적혀 있으면 눌러보고 나서야 알게 됩니다.
+
+#### 난이도 (자릿수)
 
 `3자리 / 4자리 / 5자리`를 고를 수 있고 **기본값은 3자리**입니다. 버튼은 제목 줄 바로 아래에 있습니다(`DifficultySelector`). 판을 시작하기 전에 고르는 설정이라 위쪽이 자연스럽고, 스크롤 없이 항상 보입니다.
 
 고를 수 있는 값은 `DIGIT_COUNT_OPTIONS`에 있고 버튼도 이 배열을 `map`으로 돌려 그립니다. 난이도를 하나 더 넣고 싶으면 **이 배열에만 추가하면 버튼까지 같이 생깁니다.**
 
-- **시도 횟수는 난이도와 상관없이 10회입니다.** 자릿수가 늘면 한 번의 판정에서 얻는 정보도 함께 늘기 때문에, 5자리가 3자리보다 크게 어렵지 않습니다. `MAX_ATTEMPTS`를 난이도별 표로 바꾸지 마세요
-- **난이도를 바꾸면 그 자리에서 새 판이 시작됩니다.** 정답의 길이가 달라지므로 진행 중이던 판을 이어갈 수가 없습니다. '다시하기'도 확인 없이 판을 지우므로 동작이 일관됩니다
-- 그래서 판을 새로 까는 코드는 **`startNewGame(nextDigitCount)` 하나뿐**입니다. `handleRestart`는 `startNewGame(digitCount)`, `handleChangeDigitCount`는 `startNewGame(nextDigitCount)`를 부릅니다. 둘로 나눠 쓰면 나중에 초기화할 것이 하나 늘었을 때 한쪽만 고치기 쉽습니다
-- `decideNextStatus()`는 `digitCount`를 **인자로 받습니다.** 훅 바깥에 있는 함수라 state를 볼 수 없고, 몇 스트라이크면 이기는지는 난이도마다 다르기 때문입니다
+`decideNextStatus()`는 `digitCount`를 **인자로 받습니다.** 순수 함수라 state를 볼 수 없고, 몇 스트라이크면 이기는지는 난이도마다 다르기 때문입니다.
 
 `NumberPad`는 자릿수를 아예 모릅니다. 다 찼는지(`isGuessFull`)만 받으므로 난이도가 늘어도 고칠 것이 없습니다. 이 경계를 무너뜨리지 마세요.
 
 입력 칸(`GuessInput`)은 폭을 고정하지 않고 `flex: 1 1 0` + `max-width: 64px`입니다. 5칸을 64px로 고정하면 좁은 휴대폰 화면에서 가로로 넘칩니다. 3~4칸은 `max-width`에 걸려 예전과 같은 크기입니다.
 
-### 초보 모드
+#### 무제한 기회
+
+켜면 **맞힐 때까지 게임이 끝나지 않습니다.** 오른쪽 위 표시도 `7 / 10`에서 `7회`로 바뀝니다(분모가 없으므로).
+
+`decideNextStatus()` 안에서 **이기는 조건을 무제한 조건보다 먼저 확인해야 합니다.** 순서가 반대면 무제한 모드에서 정답을 맞혀도 게임이 끝나지 않습니다.
+
+**시도 횟수는 난이도와 상관없이 10회입니다.** 자릿수가 늘면 한 번의 판정에서 얻는 정보도 함께 늘기 때문에, 5자리가 3자리보다 크게 어렵지 않습니다. `MAX_ATTEMPTS`를 난이도별 표로 바꾸지 마세요.
+
+#### 초보 모드
 
 체크박스로 켜고 끄며 **기본값은 꺼짐**입니다. 켜면 색으로 힌트를 줍니다.
 
@@ -119,6 +142,8 @@ const duplicateAttemptNumber = findDuplicateAttemptNumber(history, currentGuess)
 힌트는 `collectDigitHints(history)`가 만듭니다. 같은 숫자가 나중에 볼로 다시 나와도 **이미 확정된 스트라이크를 덮어쓰지 않습니다.**
 
 색만으로 구분하면 색을 구별하기 어려운 사람에게는 차이가 없으므로, 스트라이크에는 밑줄을, 못 누르는 버튼에는 `opacity`를 함께 씁니다.
+
+초보 모드도 **켜고 끄면 새 판이 시작됩니다.** 위의 '게임 규칙 설정 세 가지'를 보세요.
 
 ### 숫자 버튼은 토글입니다
 
@@ -137,7 +162,9 @@ const duplicateAttemptNumber = findDuplicateAttemptNumber(history, currentGuess)
 `handleSubmit`에서 `history.length`를 읽으면 아직 갱신 전 값입니다. 그래서 방금 만든 값을 직접 넘깁니다:
 
 ```js
-setGameStatus(decideNextStatus(score.strike, newRecord.attemptNumber, digitCount));
+setGameStatus(
+  decideNextStatus(score.strike, newRecord.attemptNumber, digitCount, isUnlimitedMode),
+);
 ```
 
 `history.length >= MAX_ATTEMPTS` 같은 코드로 바꾸지 마세요. 마지막 시도에서 게임이 끝나지 않는 버그가 됩니다.
@@ -145,8 +172,8 @@ setGameStatus(decideNextStatus(score.strike, newRecord.attemptNumber, digitCount
 `startNewGame`도 같은 이유로 방금 정한 자릿수를 직접 넘깁니다:
 
 ```js
-setDigitCount(nextDigitCount);
-setAnswer(createAnswer(nextDigitCount));   // digitCount를 읽으면 아직 바뀌기 전 값이다
+setDigitCount(nextSettings.digitCount);
+setAnswer(createAnswer(nextSettings.digitCount));   // digitCount를 읽으면 아직 바뀌기 전 값이다
 ```
 
 `createAnswer(digitCount)`로 바꾸면 5자리를 골랐는데 정답이 3자리로 만들어집니다.
@@ -163,7 +190,7 @@ setAnswer(createAnswer(nextDigitCount));   // digitCount를 읽으면 아직 바
 4. 매직 넘버·매직 문자열 금지. 상수는 `gameConstants.js`에, CSS 값은 `index.css`의 CSS 변수에 모읍니다
 5. 복잡한 조건식은 이름 붙인 변수로 감싸기
 6. **파일의 "코드"가 100줄을 넘기면 먼저 알리고 분리 방안을 제안할 것.** 주석과 빈 줄은 세지 않습니다 — 이 프로젝트는 주석이 두꺼운 것이 의도라서, 전체 줄로 세면 설명이 많은 파일이 억울하게 걸립니다. 전체 줄로는 181줄인 `gameLogic.js`도 코드는 68줄입니다
-   - **`useBaseballGame.js`가 코드 99줄로 기준에 거의 닿았습니다.** 여기에 뭘 더 넣기 전에 먼저 알리세요. 나눈다면 `decideNextStatus`와 `startNewGame`을 `utils/`로 빼는 것이 후보입니다(둘 다 state를 읽지 않고 인자만 받습니다)
+   - **`useBaseballGame.js`가 코드 99줄로 기준에 닿아 있습니다.** 여기에 뭘 더 넣기 전에 먼저 알리세요. `decideNextStatus`는 이미 `gameLogic.js`로 뺐으므로 더 뺄 순수 함수가 없습니다. 다음에는 훅을 둘로 나누는 쪽(게임 진행 / 그 밖의 흐름)을 검토해야 합니다
 7. 모든 파일 맨 위에 역할을 설명하는 2~3줄 주석
 8. 주석은 "무엇을"이 아니라 **"왜 이렇게 했는지"**를 적을 것
 9. 변수·함수 이름은 영어, 주석과 설명은 한국어
@@ -203,14 +230,15 @@ setAnswer(createAnswer(nextDigitCount));   // digitCount를 읽으면 아직 바
   feat: 초보 모드 켜고 끄는 체크박스 추가
 
   기록 목록 위에 체크박스를 두고 isBeginnerMode를 useBaseballGame에 넣었다.
-  초보 모드는 게임 진행이 아니라 보기 설정이라 handleRestart에서 되돌리지 않는다.
+  힌트는 지나간 기록이 아니라 숫자 버튼에 칠해야 다음에 뭘 누를지에 도움이 된다.
   ```
+
+  **"무엇을 했는지"보다 "왜 그렇게 했는지"를 적습니다.** 무엇을 했는지는 diff를 보면 알 수 있지만, 왜 그랬는지는 적어두지 않으면 사라집니다.
 
   종류 표시는 `feat:`(기능 추가), `fix:`(버그 수정), `refactor:`(동작은 그대로, 구조만 정리), `docs:`(문서), `style:`(모양만), `chore:`(설정·잡일)
 
 ## 지금 구현하지 않을 것 (요청 전까지 미리 만들지 말 것)
 
 - 숫자 버튼 롱프레스로 X 표시
-- 시도 횟수 무제한 모드
 - 배포, 테스트 프레임워크 도입
 - **성능 최적화(`useMemo`, `useCallback`) — 가독성을 해치므로 사용하지 마세요**
