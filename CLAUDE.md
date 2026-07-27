@@ -33,7 +33,7 @@ main.jsx → App.jsx → components/*.jsx
 | 위치 | 역할 |
 |---|---|
 | `src/constants/gameConstants.js` | **값만.** 함수 없음. `DIGIT_COUNT`, `MAX_ATTEMPTS`, `MIN_DIGIT`, `MAX_DIGIT`, `GAME_STATUS` |
-| `src/utils/gameLogic.js` | **React와 무관한 순수 함수.** `createAnswer()`, `judge()`, `createAllDigits()` |
+| `src/utils/gameLogic.js` | **React와 무관한 순수 함수.** `createAnswer()`, `scoreGuess()`, `createAllDigits()` |
 | `src/hooks/useBaseballGame.js` | **게임 진행 상태 전부.** state, 파생값, 조작 함수 |
 | `src/components/*.jsx` | 화면 조각. 각 파일은 같은 이름의 `*.module.css`와 짝을 이룸 |
 | `src/App.jsx` | 훅에서 받은 값을 화면 조각에 배분하기만 함. **여기에 state를 두지 마세요** |
@@ -66,7 +66,8 @@ const isGameOver = gameStatus !== GAME_STATUS.PLAYING;
 ### 판정 규칙
 
 - 정답은 서로 다른 숫자 3개, 첫 자리 0 허용
-- 정답과 입력 모두 중복이 없으므로 `strike + ball + out === DIGIT_COUNT`가 항상 성립합니다. `judge()`의 단순한 자리별 비교가 성립하는 근거입니다
+- 정답과 입력 모두 중복이 없으므로 `strike + ball + out === DIGIT_COUNT`가 항상 성립합니다. `scoreGuess()`의 단순한 자리별 비교가 성립하는 근거입니다
+- `scoreGuess()`는 **채점만** 합니다. 승패 판단은 `useBaseballGame`의 `decideNextStatus()`가 맡습니다. 이 경계를 섞지 마세요
 - 화면 표기는 참고 사이트(https://sciencelove.com/2653)를 그대로 따라 **`S:1 B:1 OUT:1`** 형식으로 셋을 항상 모두 표시합니다
 
 ### `setState`는 즉시 반영되지 않습니다

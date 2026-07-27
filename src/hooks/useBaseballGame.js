@@ -7,7 +7,7 @@
 import { useState } from 'react';
 
 import { DIGIT_COUNT, MAX_ATTEMPTS, GAME_STATUS } from '../constants/gameConstants.js';
-import { createAnswer, judge } from '../utils/gameLogic.js';
+import { createAnswer, scoreGuess } from '../utils/gameLogic.js';
 
 /**
  * 이번 시도 결과로 게임이 어떤 상태가 되는지 정한다.
@@ -57,19 +57,19 @@ export function useBaseballGame() {
   }
 
   function handleSubmit() {
-    const result = judge(answer, currentGuess);
+    const score = scoreGuess(answer, currentGuess);
     const newRecord = {
       attemptNumber: attemptCount + 1,
       guess: currentGuess,
-      strike: result.strike,
-      ball: result.ball,
-      out: result.out,
+      strike: score.strike,
+      ball: score.ball,
+      out: score.out,
     };
 
     // 최신 기록이 위에 오도록 새 기록을 배열 맨 앞에 붙인다.
     setHistory([newRecord, ...history]);
     setCurrentGuess([]);
-    setGameStatus(decideNextStatus(result.strike, newRecord.attemptNumber));
+    setGameStatus(decideNextStatus(score.strike, newRecord.attemptNumber));
   }
 
   function handleRestart() {

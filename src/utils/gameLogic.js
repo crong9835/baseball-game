@@ -66,7 +66,10 @@ export function createAnswer() {
 }
 
 /**
- * 정답과 입력을 비교해 { strike, ball, out }을 돌려준다.
+ * 사용자가 낸 답을 정답과 비교해 채점한다.
+ *
+ * 채점만 하고 승패는 판단하지 않는다.
+ * 이겼는지 졌는지는 이 결과를 받아서 useBaseballGame의 decideNextStatus가 정한다.
  *
  * 정답도 입력도 중복 숫자가 없기 때문에(입력은 화면에서 중복을 막는다)
  * 한 자리는 스트라이크·볼·아웃 중 정확히 하나에만 해당한다.
@@ -76,7 +79,7 @@ export function createAnswer() {
  * @param {number[]} guess  사용자 입력 (예: [1, 3, 4])
  * @returns {{ strike: number, ball: number, out: number }} 예: { strike: 1, ball: 1, out: 1 }
  */
-export function judge(answer, guess) {
+export function scoreGuess(answer, guess) {
   let strike = 0;
   let ball = 0;
   let out = 0;
