@@ -1,0 +1,76 @@
+/*
+ * 확인 창의 모양.
+ * <dialog>는 기본 margin이 auto라 가로세로 가운데 정렬은 브라우저가 알아서 해준다.
+ */
+
+.dialog {
+  /*
+   * min()은 둘 중 작은 값을 고른다. 넓은 화면에서는 320px,
+   * 좁은 휴대폰에서는 화면 폭에서 좌우 여백을 뺀 만큼이 되어 가장자리에 붙지 않는다.
+   */
+  width: min(320px, calc(100% - var(--space-large) * 2));
+  padding: var(--space-large) var(--space-medium);
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-medium);
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+/* ::backdrop은 <dialog> 뒤에 깔리는 배경이다. 브라우저가 만들어 주므로 요소를 따로 두지 않는다. */
+.dialog::backdrop {
+  background: var(--color-overlay);
+}
+
+.title {
+  margin: 0;
+  font-size: 18px;
+}
+
+.description {
+  margin: 0;
+  font-size: 14px;
+  color: var(--color-text-muted);
+}
+
+.buttonRow {
+  display: flex;
+  gap: var(--space-small);
+}
+
+/*
+ * 두 버튼이 flex: 1로 폭을 반씩 나눠 갖는다.
+ * 글자 수가 달라도(취소 / 새 판 시작) 크기가 같아서 한쪽이 더 눌러 달라고 보이지 않는다.
+ */
+.cancelButton {
+  flex: 1;
+  min-height: var(--button-min-size);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.cancelButton:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+/* 판을 지우는 쪽이라 강조색 대신 경고색을 쓴다. 눌렀을 때 되돌릴 수 없기 때문이다. */
+.confirmButton {
+  flex: 1;
+  min-height: var(--button-min-size);
+  border: 1px solid var(--color-strike);
+  border-radius: var(--radius);
+  background: var(--color-strike);
+  color: var(--color-primary-text);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}

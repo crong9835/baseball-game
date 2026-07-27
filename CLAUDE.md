@@ -40,7 +40,7 @@ main.jsx → App.jsx → components/*.jsx
 | `src/components/*.jsx` | 화면 조각. 각 파일은 같은 이름의 `*.module.css`와 짝을 이룸 |
 | `src/App.jsx` | 훅에서 받은 값을 화면 조각에 배분하기만 함. **여기에 state를 두지 마세요** |
 
-컴포넌트는 `DifficultySelector`, `GuessInput`, `NumberPad`, `SettingToggle`, `ResultBanner`, `HistoryList` 여섯 개입니다.
+컴포넌트는 `DifficultySelector`, `GuessInput`, `NumberPad`, `SettingToggle`, `ResultBanner`, `HistoryList`, `ConfirmDialog` 일곱 개입니다.
 
 `SettingToggle`만 **같은 컴포넌트를 두 번 씁니다**(초보 모드, 무제한 기회). 생김새와 동작이 똑같고 글자만 달라서, 파일을 복사해 두는 대신 `label`·`description`을 props로 받게 했습니다. 설정이 하나 더 늘어도 `App.jsx`에 다섯 줄만 추가하면 됩니다.
 
@@ -51,10 +51,11 @@ main.jsx → App.jsx → components/*.jsx
 **모든 state는 `useBaseballGame` 훅이 소유합니다.** App도 자식 컴포넌트도 `useState`를 갖지 않습니다.
 같은 값을 여러 컴포넌트가 봐야 하기 때문입니다(예: `currentGuess`는 `GuessInput`이 표시하고 `NumberPad`가 버튼 비활성화에 사용).
 
-훅이 가진 state는 7개뿐이고, 두 갈래로 나뉩니다:
+훅이 가진 state는 8개뿐이고, 세 갈래로 나뉩니다:
 
 - **게임 규칙** — `digitCount`, `isUnlimitedMode`, `isBeginnerMode`
 - **게임 진행** — `answer`, `currentGuess`, `history`, `gameStatus`
+- **확인 대기** — `pendingSettings`
 
 **규칙 셋은 바뀌는 순간 새 판이 시작됩니다. 예외는 없습니다.** 판 중간에 규칙이 바뀌면 앞의 기록과 뒤의 기록이 서로 다른 조건으로 쌓이기 때문입니다.
 
@@ -76,7 +77,25 @@ const duplicateAttemptNumber = findDuplicateAttemptNumber(history, currentGuess)
 
 `digitHints`를 state로 만들면 "기록은 늘었는데 힌트는 그대로"인 버그가 바로 생깁니다. 진짜 값은 `history` 하나뿐입니다.
 
-**이 프로젝트에는 `useEffect`가 하나도 없고, 앞으로도 필요하지 않습니다.** 파생값을 `useEffect`로 동기화하려는 코드를 추가하지 마세요.
+### `useEffect`를 쓰는 기준
+
+**규칙은 "쓰지 마라"가 아니라 "state에서 계산되는 값을 `useEffect`로 베껴 두지 마라"입니다.**
+
+> 예전에는 "이 프로젝트에는 `useEffect`가 하나도 없고 앞으로도 필요하지 않다"고 적혀 있었습니다. **2026년 7월에 고쳤습니다.** 0개였던 건 규칙을 지켜서가 아니라 React 바깥과 얘기할 일이 없어서였는데, 문장이 그 이유를 감추고 있었습니다. 그대로 두면 브라우저가 공짜로 주는 기능을 손으로 다시 만들게 됩니다.
+
+`useEffect`는 **React가 모르는 바깥 세상과 맞추는** 훅입니다. "state가 바뀌면 뭘 하라"가 아닙니다.
+
+| 상황 | |
+|---|---|
+| `history`로 힌트 계산 | ❌ 그냥 계산 |
+| 버튼 눌렀을 때 뭔가 하기 | ❌ 이벤트 핸들러 |
+| props가 바뀌면 state 맞추기 | ❌ 대개 설계가 잘못된 신호 |
+| `dialog.showModal()` 호출 | ⭕ DOM API와 동기화 |
+| `localStorage`, 타이머, 구독 | ⭕ 정리(cleanup)가 필요 |
+
+지금 `useEffect`는 **`ConfirmDialog.jsx` 한 곳뿐**입니다. `<dialog>`는 `isOpen`이 `true`인 것만으로는 열리지 않고 브라우저의 `showModal()`을 반드시 불러야 열리기 때문입니다. 여기에 하나 더 늘리려면 위 표의 ⭕쪽인지 먼저 확인하세요.
+
+`useRef`도 같은 자리에 있습니다. **`ref`는 state가 아닙니다** — 바뀌어도 화면을 다시 그리지 않으므로 "모든 state는 훅이 소유한다"는 규칙과 어긋나지 않습니다.
 
 ### 데이터는 아래로, 사건은 위로
 
@@ -107,6 +126,27 @@ function handleToggleUnlimitedMode() {
 **값을 하나씩 나열하지 않고 객체로 받습니다.** `startNewGame(3, false, true)`라고 쓰면 두 번째 `false`가 무엇인지 알 수 없습니다. 부르는 쪽에서 이름이 보여야 무엇이 바뀌는 조작인지 한눈에 읽힙니다.
 
 체크박스 설명에 `· 바꾸면 새 판`을 적어둔 것도 같은 이유입니다. 눌렀을 때 판이 사라지는데 글자에 안 적혀 있으면 눌러보고 나서야 알게 됩니다.
+
+#### 새 판 확인 창 (`ConfirmDialog`)
+
+판을 날리는 조작은 넷입니다 — 난이도 변경, 초보 모드 토글, 무제한 기회 토글, 다시하기. 넷 다 **`requestNewGame(nextSettings)`을 거칩니다.** 물어볼지 말지를 한 곳에서만 판단해야 나중에 조작이 하나 늘었을 때 빠뜨리지 않습니다.
+
+**잃을 게 있을 때만 묻습니다** (`attemptCount > 0 && !isGameOver`). 무조건 물으면 기록이 0개일 때도 창이 떠서, 내용을 안 읽고 확인부터 누르는 습관이 듭니다. 정작 물어봐야 할 때 소용이 없어집니다.
+
+**`pendingSettings` state 하나로 처리합니다.** `null`이면 묻는 중이 아닙니다. `startNewGame`이 이미 `{ digitCount, isUnlimitedMode, isBeginnerMode }` 객체를 받으므로, 담아둔 것을 확인 버튼에서 그대로 넘기면 됩니다. `isConfirmOpen` 같은 불린을 따로 두지 마세요. "열려 있는데 무엇을 확인하려던 건지는 잃어버린" 상태가 만들어집니다.
+
+**취소에는 원상복구 코드가 없습니다.** 체크박스와 난이도 버튼이 state를 그대로 비추는 제어 컴포넌트라, state를 안 바꿨으니 화면도 저절로 그대로입니다.
+
+`setPendingSettings(null)`은 **`startNewGame` 안에** 있습니다. 판을 까는 길이 그 함수 하나뿐이라, 어느 경로로 들어와도 창이 닫히는 것이 보장됩니다.
+
+**훅으로 분리하지 마세요.** 한때 `useNewGameConfirm`으로 빼려다 철회했습니다. 확인 흐름과 `startNewGame`은 한 몸이라 나누면 배선만 늘어납니다(위 '파일을 나누는 기준' 3번).
+
+`<dialog>` 태그를 쓰므로 Esc 닫기·포커스 가두기·배경 어둡게는 브라우저가 해줍니다. 대신 두 가지를 주의하세요:
+
+- 닫혀 있을 때 `return null` 하지 마세요. 요소가 사라지면 `close()`를 부를 대상이 없어집니다
+- **`onClose={onCancel}`이 반드시 있어야 합니다.** Esc를 누르면 브라우저가 창을 혼자 닫는데, 훅에 알리지 않으면 "화면은 닫혔는데 훅은 아직 묻는 중"으로 어긋납니다
+
+확인 버튼은 강조색(파랑)이 아니라 경고색(`--color-strike`)입니다. 되돌릴 수 없는 조작이기 때문입니다. 그리고 취소를 DOM 순서에서 **앞에** 두었습니다 — `showModal()`이 첫 버튼에 포커스를 주므로, 엔터를 잘못 눌렀을 때 취소가 되는 쪽이 안전합니다. 순서를 바꾸지 마세요.
 
 #### 난이도 (자릿수)
 

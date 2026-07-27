@@ -12,6 +12,7 @@ import NumberPad from './components/NumberPad.jsx';
 import ResultBanner from './components/ResultBanner.jsx';
 import SettingToggle from './components/SettingToggle.jsx';
 import HistoryList from './components/HistoryList.jsx';
+import ConfirmDialog from './components/ConfirmDialog.jsx';
 import styles from './App.module.css';
 
 function App() {
@@ -26,6 +27,7 @@ function App() {
     attemptCount,
     isGuessFull,
     isGameOver,
+    isConfirmingNewGame,
     digitHints,
     duplicateAttemptNumber,
     isDuplicateGuess,
@@ -36,6 +38,8 @@ function App() {
     handleChangeDigitCount,
     handleToggleUnlimitedMode,
     handleToggleBeginnerMode,
+    handleConfirmNewGame,
+    handleCancelNewGame,
   } = useBaseballGame();
 
   // 무제한 모드에서는 분모가 없으므로 "7회"라고만 적는다.
@@ -106,6 +110,19 @@ function App() {
         />
         <HistoryList history={history} isBeginnerMode={isBeginnerMode} />
       </section>
+
+      {/*
+        진행 중이던 판이 사라지는 조작(난이도·설정 둘·다시하기)을 눌렀을 때 뜨는 확인 창.
+        네 조작 모두 훅 안에서 같은 길을 지나므로 여기에는 창 하나만 두면 된다.
+        화면 어디에 적어도 위에 겹쳐 뜨지만, 다른 조각을 다 그린 뒤인 맨 아래에 두어
+        "평소에는 없는 것"임을 코드 순서로도 보이게 했다.
+      */}
+      <ConfirmDialog
+        isOpen={isConfirmingNewGame}
+        attemptCount={attemptCount}
+        onConfirm={handleConfirmNewGame}
+        onCancel={handleCancelNewGame}
+      />
     </main>
   );
 }
