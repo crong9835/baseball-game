@@ -6,7 +6,7 @@
 
 import { useState } from 'react';
 
-import { DEFAULT_DIGIT_COUNT, GAME_STATUS } from '../constants/gameConstants.js';
+import { DEFAULT_DIGIT_COUNT, GAME_STATUS, NEW_GAME_REASON } from '../constants/gameConstants.js';
 import {
   createAnswer,
   scoreGuess,
@@ -39,16 +39,21 @@ export function useBaseballGame() {
   const [gameStatus, setGameStatus] = useState(GAME_STATUS.PLAYING);
 
   /*
-   * 확인 창이 "물어보는 중인 설정"을 담아 둔다. null이면 묻는 중이 아니다.
+   * 확인 창이 물어보는 중인 것을 담아 둔다. null이면 묻는 중이 아니다.
+   * 모양은 { reason, settings } 두 칸이다.
+   *
+   * - settings: 확인을 누르면 startNewGame에 그대로 넘길 값
+   * - reason: 무엇 때문에 뜬 창인지. 창에 적을 문구를 고르는 데 쓴다
+   *
+   * reason이 따로 필요한 이유는, 확인을 받기 전에는 state를 바꾸지 않아서
+   * 체크박스가 눌리기 전 모습으로 되돌아가 있기 때문이다. settings만 보고
+   * "초보 모드를 켜려는 중"인지 알아내려면 지금 값과 일일이 비교해야 한다.
    *
    * isConfirmOpen 같은 불린을 따로 두지 않은 이유:
    * 열려 있다는 사실은 여기에 값이 들어 있는지로 이미 알 수 있는데 둘로 나누면
    * "열려 있는데 무엇을 확인하려던 건지는 잃어버린" 어긋난 상태가 만들어질 수 있다.
-   *
-   * startNewGame이 이미 { digitCount, isUnlimitedMode, isBeginnerMode } 객체를 받으므로,
-   * 여기에 담아둔 것을 확인 버튼에서 그대로 넘기면 된다.
    */
-  const [pendingSettings, setPendingSettings] = useState(null);
+  const [pendingNewGame, setPendingNewGame] = useState(null);
 
   // 아래 값들은 state에서 바로 계산할 수 있으므로 state로 만들지 않는다.
   // state가 바뀌면 이 훅을 쓰는 컴포넌트가 다시 실행되면서 자동으로 다시 계산된다.
@@ -56,8 +61,8 @@ export function useBaseballGame() {
   const isGuessFull = currentGuess.length === digitCount;
   const isGameOver = gameStatus !== GAME_STATUS.PLAYING;
 
-  // 확인 창이 열렸는지도 pendingSettings에서 바로 나오는 값이라 state로 만들지 않는다.
-  const isConfirmingNewGame = pendingSettings !== null;
+  // 확인 창이 열렸는지도 pendingNewGame에서 바로 나오는 값이라 state로 만들지 않는다.
+  const isConfirmingNewGame = pendingNewGame !== null;
 
   /*
    * 아직 한 번도 안 냈거나 이미 끝난 판은 새로 시작해도 잃을 것이 없다.
@@ -150,19 +155,19 @@ export function useBaseballGame() {
     // 판이 새로 깔렸으면 물어볼 것도 없어졌다.
     // 확인 버튼 쪽에서 따로 닫지 않고 여기서 닫는 이유는, 판을 까는 길이 이 함수 하나뿐이라
     // 여기에 두면 어느 경로로 들어와도 창이 닫히는 것이 보장되기 때문이다.
-    setPendingSettings(null);
+    setPendingNewGame(null);
   }
 
   /*
    * 판을 날리는 조작(다시하기와 설정 셋)이 모두 이 함수를 거친다.
-   * 잃을 것이 있으면 곧바로 시작하지 않고 확인 창에 물어볼 설정을 담아 둔다.
+   * 잃을 것이 있으면 곧바로 시작하지 않고 확인 창에 물어볼 것을 담아 둔다.
    *
    * 물어볼지 말지를 여기서 한 번만 판단하는 이유:
    * 네 조작이 각자 판단하면 나중에 조작이 하나 늘었을 때 한 군데를 빠뜨린다.
    */
-  function requestNewGame(nextSettings) {
+  function requestNewGame(reason, nextSettings) {
     if (hasProgressToLose) {
-      setPendingSettings(nextSettings);
+      setPendingNewGame({ reason, settings: nextSettings });
       return;
     }
 
@@ -171,26 +176,48 @@ export function useBaseballGame() {
 
   // 설정은 그대로 두고 정답만 새로 뽑는다.
   function handleRestart() {
-    requestNewGame({ digitCount, isUnlimitedMode, isBeginnerMode });
+    requestNewGame(NEW_GAME_REASON.RESTART, { digitCount, isUnlimitedMode, isBeginnerMode });
   }
 
-  // 아래 셋은 규칙을 하나씩만 바꿔서 새 판을 시작한다.
-  // 나머지 둘을 그대로 넘기는 것이 눈에 보이므로 무엇이 바뀌는지 헷갈리지 않는다.
+  /*
+   * 아래 셋은 규칙을 하나씩만 바꿔서 새 판을 시작한다.
+   * 나머지 둘을 그대로 넘기는 것이 눈에 보이므로 무엇이 바뀌는지 헷갈리지 않는다.
+   *
+   * 이미 고른 자릿수를 다시 누른 것은 아무것도 바꾸지 않는 조작이다.
+   * 그냥 두면 "기록이 사라집니다"를 묻는 창이 뜨고, 그 말을 "3자리로 하겠다"는 뜻으로
+   * 읽은 사람이 확인을 누르면 바뀐 것도 없이 판만 날아간다.
+   */
   function handleChangeDigitCount(nextDigitCount) {
-    requestNewGame({ digitCount: nextDigitCount, isUnlimitedMode, isBeginnerMode });
+    if (nextDigitCount === digitCount) {
+      return;
+    }
+
+    requestNewGame(NEW_GAME_REASON.DIGIT_COUNT, {
+      digitCount: nextDigitCount,
+      isUnlimitedMode,
+      isBeginnerMode,
+    });
   }
 
   function handleToggleUnlimitedMode() {
-    requestNewGame({ digitCount, isUnlimitedMode: !isUnlimitedMode, isBeginnerMode });
+    requestNewGame(NEW_GAME_REASON.UNLIMITED_MODE, {
+      digitCount,
+      isUnlimitedMode: !isUnlimitedMode,
+      isBeginnerMode,
+    });
   }
 
   function handleToggleBeginnerMode() {
-    requestNewGame({ digitCount, isUnlimitedMode, isBeginnerMode: !isBeginnerMode });
+    requestNewGame(NEW_GAME_REASON.BEGINNER_MODE, {
+      digitCount,
+      isUnlimitedMode,
+      isBeginnerMode: !isBeginnerMode,
+    });
   }
 
   // 담아둔 설정을 그대로 넘긴다. 무엇을 확인했는지가 그 객체에 다 들어 있다.
   function handleConfirmNewGame() {
-    startNewGame(pendingSettings);
+    startNewGame(pendingNewGame.settings);
   }
 
   /*
@@ -199,7 +226,7 @@ export function useBaseballGame() {
    * state를 안 바꿨으니 화면도 저절로 원래대로다. 되돌리는 코드가 따로 필요 없다.
    */
   function handleCancelNewGame() {
-    setPendingSettings(null);
+    setPendingNewGame(null);
   }
 
   // setCurrentGuess 같은 setter는 일부러 내보내지 않는다.
@@ -216,6 +243,7 @@ export function useBaseballGame() {
     isGuessFull,
     isGameOver,
     isConfirmingNewGame,
+    pendingNewGame,
     digitHints,
     duplicateAttemptNumber,
     isDuplicateGuess,

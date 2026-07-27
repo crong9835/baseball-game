@@ -28,6 +28,7 @@ function App() {
     isGuessFull,
     isGameOver,
     isConfirmingNewGame,
+    pendingNewGame,
     digitHints,
     duplicateAttemptNumber,
     isDuplicateGuess,
@@ -58,7 +59,8 @@ function App() {
 
       {/*
         난이도는 판을 시작하기 전에 고르는 것이라 맨 위에 둔다.
-        누르면 그 자리에서 새 판이 시작된다(정답·기록·입력이 모두 초기화된다).
+        누르면 새 판이 시작된다(정답·기록·입력이 모두 초기화된다).
+        단, 잃을 기록이 있으면 곧바로 시작하지 않고 아래 ConfirmDialog가 먼저 물어본다.
       */}
       <DifficultySelector digitCount={digitCount} onSelect={handleChangeDigitCount} />
 
@@ -119,6 +121,7 @@ function App() {
       */}
       <ConfirmDialog
         isOpen={isConfirmingNewGame}
+        pendingNewGame={pendingNewGame}
         attemptCount={attemptCount}
         onConfirm={handleConfirmNewGame}
         onCancel={handleCancelNewGame}

@@ -37,6 +37,20 @@ export const GAME_STATUS = {
 };
 
 /*
+ * 새 판을 시작하려는 이유. 확인 창이 "무엇을 확인하는지" 적으려고 쓴다.
+ *
+ * 설정을 바꾸려고 눌러도 확인을 받기 전에는 state를 바꾸지 않아서,
+ * 체크박스는 눌리기 전 모습으로 되돌아가 있다. 창이 "판을 지울까요?"만 물으면
+ * 무엇 때문에 뜬 창인지 알 수 없다.
+ */
+export const NEW_GAME_REASON = {
+  RESTART: 'restart',
+  DIGIT_COUNT: 'digitCount',
+  UNLIMITED_MODE: 'unlimitedMode',
+  BEGINNER_MODE: 'beginnerMode',
+};
+
+/*
  * 입력한 숫자 한 개가 받을 수 있는 판정.
  * 정답에도 입력에도 중복이 없으므로 한 자리는 항상 이 셋 중 정확히 하나다.
  */

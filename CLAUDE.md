@@ -34,7 +34,7 @@ main.jsx → App.jsx → components/*.jsx
 
 | 위치 | 역할 |
 |---|---|
-| `src/constants/gameConstants.js` | **값만.** 함수 없음. `DIGIT_COUNT_OPTIONS`, `DEFAULT_DIGIT_COUNT`, `MAX_ATTEMPTS`, `MIN_DIGIT`, `MAX_DIGIT`, `GAME_STATUS`, `DIGIT_RESULT` |
+| `src/constants/gameConstants.js` | **값만.** 함수 없음. `DIGIT_COUNT_OPTIONS`, `DEFAULT_DIGIT_COUNT`, `MAX_ATTEMPTS`, `MIN_DIGIT`, `MAX_DIGIT`, `GAME_STATUS`, `NEW_GAME_REASON`, `DIGIT_RESULT` |
 | `src/utils/gameLogic.js` | **React와 무관한 순수 함수.** `createAllDigits()`, `createAnswer(digitCount)`, `judgeEachDigit()`, `findDuplicateAttemptNumber()`, `collectDigitHints()`, `scoreGuess()`, `decideNextStatus()` |
 | `src/hooks/useBaseballGame.js` | **게임 진행 상태 전부.** state, 파생값, 조작 함수 |
 | `src/components/*.jsx` | 화면 조각. 각 파일은 같은 이름의 `*.module.css`와 짝을 이룸 |
@@ -55,7 +55,7 @@ main.jsx → App.jsx → components/*.jsx
 
 - **게임 규칙** — `digitCount`, `isUnlimitedMode`, `isBeginnerMode`
 - **게임 진행** — `answer`, `currentGuess`, `history`, `gameStatus`
-- **확인 대기** — `pendingSettings`
+- **확인 대기** — `pendingNewGame`
 
 **규칙 셋은 바뀌는 순간 새 판이 시작됩니다. 예외는 없습니다.** 판 중간에 규칙이 바뀌면 앞의 기록과 뒤의 기록이 서로 다른 조건으로 쌓이기 때문입니다.
 
@@ -129,15 +129,24 @@ function handleToggleUnlimitedMode() {
 
 #### 새 판 확인 창 (`ConfirmDialog`)
 
-판을 날리는 조작은 넷입니다 — 난이도 변경, 초보 모드 토글, 무제한 기회 토글, 다시하기. 넷 다 **`requestNewGame(nextSettings)`을 거칩니다.** 물어볼지 말지를 한 곳에서만 판단해야 나중에 조작이 하나 늘었을 때 빠뜨리지 않습니다.
+판을 날리는 조작은 넷입니다 — 난이도 변경, 초보 모드 토글, 무제한 기회 토글, 다시하기. 넷 다 **`requestNewGame(reason, nextSettings)`을 거칩니다.** 물어볼지 말지를 한 곳에서만 판단해야 나중에 조작이 하나 늘었을 때 빠뜨리지 않습니다.
 
 **잃을 게 있을 때만 묻습니다** (`attemptCount > 0 && !isGameOver`). 무조건 물으면 기록이 0개일 때도 창이 떠서, 내용을 안 읽고 확인부터 누르는 습관이 듭니다. 정작 물어봐야 할 때 소용이 없어집니다.
 
-**`pendingSettings` state 하나로 처리합니다.** `null`이면 묻는 중이 아닙니다. `startNewGame`이 이미 `{ digitCount, isUnlimitedMode, isBeginnerMode }` 객체를 받으므로, 담아둔 것을 확인 버튼에서 그대로 넘기면 됩니다. `isConfirmOpen` 같은 불린을 따로 두지 마세요. "열려 있는데 무엇을 확인하려던 건지는 잃어버린" 상태가 만들어집니다.
+**아무것도 바꾸지 않는 조작은 아예 묻지 않습니다.** 3자리에서 다시 3자리를 누르면 `handleChangeDigitCount`가 그 자리에서 `return`합니다. 그냥 두면 바뀌는 것도 없는데 "기록이 사라집니다"가 뜨고, 그 말을 "3자리로 하겠다"는 뜻으로 읽은 사람이 확인을 눌러 판을 날립니다.
+
+**`pendingNewGame` state 하나로 처리합니다.** `null`이면 묻는 중이 아니고, 모양은 `{ reason, settings }`입니다.
+
+- `settings` — 확인을 누르면 `startNewGame`에 그대로 넘길 값. `startNewGame`이 이미 `{ digitCount, isUnlimitedMode, isBeginnerMode }` 객체를 받으므로 모양이 그대로 맞습니다
+- `reason` — 창에 적을 질문을 고르는 데 씁니다 (`NEW_GAME_REASON`)
+
+**`reason`을 빼지 마세요.** 확인을 받기 전에는 state를 바꾸지 않아서 체크박스가 눌리기 전 모습으로 돌아가 있습니다. 창이 "판을 지울까요?"만 물으면 무엇 때문에 뜬 창인지 알 수 없고, 취소한 사람은 설정이 안 켜진 채로 남습니다. `settings`만으로 알아내려면 지금 값과 일일이 비교해야 합니다.
+
+`isConfirmOpen` 같은 불린을 따로 두지 마세요. "열려 있는데 무엇을 확인하려던 건지는 잃어버린" 상태가 만들어집니다.
 
 **취소에는 원상복구 코드가 없습니다.** 체크박스와 난이도 버튼이 state를 그대로 비추는 제어 컴포넌트라, state를 안 바꿨으니 화면도 저절로 그대로입니다.
 
-`setPendingSettings(null)`은 **`startNewGame` 안에** 있습니다. 판을 까는 길이 그 함수 하나뿐이라, 어느 경로로 들어와도 창이 닫히는 것이 보장됩니다.
+`setPendingNewGame(null)`은 **`startNewGame` 안에** 있습니다. 판을 까는 길이 그 함수 하나뿐이라, 어느 경로로 들어와도 창이 닫히는 것이 보장됩니다.
 
 **훅으로 분리하지 마세요.** 한때 `useNewGameConfirm`으로 빼려다 철회했습니다. 확인 흐름과 `startNewGame`은 한 몸이라 나누면 배선만 늘어납니다(위 '파일을 나누는 기준' 3번).
 

@@ -6,9 +6,45 @@
 
 import { useRef, useEffect } from 'react';
 
+import { NEW_GAME_REASON } from '../constants/gameConstants.js';
 import styles from './ConfirmDialog.module.css';
 
-function ConfirmDialog({ isOpen, attemptCount, onConfirm, onCancel }) {
+/*
+ * 무엇 때문에 뜬 창인지를 그대로 질문으로 만든다.
+ *
+ * "지금 판을 지우고 새로 시작할까요?"만 물으면 안 되는 이유:
+ * 확인을 받기 전에는 state를 바꾸지 않으므로 체크박스가 눌리기 전 모습으로 돌아가 있다.
+ * 초보 모드를 켜려고 눌렀는데 창에 그 말이 없으면, 취소한 사람은 설정이 안 켜진 채로 남고
+ * 확인한 사람은 생각지도 못한 힌트 색을 보게 된다.
+ *
+ * 중첩 삼항연산자 대신 if로 하나씩 풀어 썼다.
+ */
+function getQuestion(pendingNewGame) {
+  const { reason, settings } = pendingNewGame;
+
+  if (reason === NEW_GAME_REASON.DIGIT_COUNT) {
+    return `${settings.digitCount}자리로 바꿀까요?`;
+  }
+
+  if (reason === NEW_GAME_REASON.BEGINNER_MODE) {
+    if (settings.isBeginnerMode) {
+      return '초보 모드를 켤까요?';
+    }
+    return '초보 모드를 끌까요?';
+  }
+
+  if (reason === NEW_GAME_REASON.UNLIMITED_MODE) {
+    if (settings.isUnlimitedMode) {
+      return '무제한 기회를 켤까요?';
+    }
+    return '무제한 기회를 끌까요?';
+  }
+
+  // 남은 하나는 '다시하기'다. 바뀌는 설정이 없으므로 판을 새로 깐다는 말만 하면 된다.
+  return '새 판을 시작할까요?';
+}
+
+function ConfirmDialog({ isOpen, pendingNewGame, attemptCount, onConfirm, onCancel }) {
   /*
    * useRef (유즈레프) — 화면에 그려진 실제 DOM 요소를 붙잡아 두는 훅.
    * state와 달리 값이 바뀌어도 화면을 다시 그리지 않는다. 여기서는 아래 <dialog>에
@@ -35,6 +71,15 @@ function ConfirmDialog({ isOpen, attemptCount, onConfirm, onCancel }) {
     dialogRef.current.close();
   }, [isOpen]);
 
+  /*
+   * 닫혀 있는 동안에는 pendingNewGame이 null이라 질문을 만들 수 없다.
+   * 그때는 어차피 화면에 안 보이므로 빈 글자를 넣어 둔다.
+   */
+  let question = '';
+  if (pendingNewGame !== null) {
+    question = getQuestion(pendingNewGame);
+  }
+
   return (
     /*
      * 닫혀 있을 때도 <dialog> 자체는 계속 그려 둔다.
@@ -45,8 +90,10 @@ function ConfirmDialog({ isOpen, attemptCount, onConfirm, onCancel }) {
      * 그때 훅에게 알리지 않으면 "화면은 닫혔는데 훅은 아직 묻는 중"으로 어긋난다.
      */
     <dialog ref={dialogRef} className={styles.dialog} onClose={onCancel}>
-      <h2 className={styles.title}>지금 판을 지우고 새로 시작할까요?</h2>
-      <p className={styles.description}>{attemptCount}번 시도한 기록이 사라집니다.</p>
+      <h2 className={styles.title}>{question}</h2>
+      <p className={styles.description}>
+        지금 판이 지워집니다. {attemptCount}번 시도한 기록이 사라집니다.
+      </p>
 
       {/*
         취소를 앞에 두었다. showModal()은 창 안의 첫 버튼에 포커스를 주므로,
