@@ -87,7 +87,7 @@ function HistoryList({ history, isBeginnerMode }) {
           {/*
             숫자를 join(' ')으로 이어 붙이면 문자열 하나가 되어 한 자리만 색을 다르게 할 수 없다.
             그래서 자리마다 span을 따로 그리고, 같은 자리의 판정으로 색을 정한다.
-            (key로 position을 써도 되는 이유: 세 자리는 순서가 바뀌거나 중간에 끼어들지 않는다)
+            (key로 position을 써도 되는 이유: 한 기록 안의 자리들은 순서가 바뀌거나 중간에 끼어들지 않는다)
           */}
           <span className={styles.guess}>
             {record.guess.map((digit, position) => (

@@ -55,9 +55,17 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* "2스트라이크 1볼"처럼 조각이 둘일 때의 사이 간격도 gap이 만든다. */
+/*
+ * "1스트라이크 1볼 1아웃"처럼 조각이 여럿일 때의 사이 간격도 gap이 만든다.
+ *
+ * 5자리에서는 조각이 셋 다 나오면 좁은 화면에서 한 줄에 들어가지 않는다.
+ * flex-wrap으로 넘칠 때만 아랫줄로 내려보낸다. 오른쪽 끝에 맞춰야 줄이 바뀌어도
+ * 여러 기록의 오른쪽 끝이 세로로 가지런하다.
+ */
 .result {
   display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   gap: var(--space-small);
   font-size: 14px;
 }

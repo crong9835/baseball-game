@@ -74,7 +74,10 @@ function NumberPad({
           const isPicked = currentGuess.includes(digit);
 
           // 이미 고른 숫자는 막지 않는다. 다시 눌러서 빼는 것이 이 버튼의 또 다른 역할이기 때문이다.
-          // 세 자리를 다 채운 뒤에는 "빼기"만 남으므로 고르지 않은 숫자만 막는다.
+          // 자릿수를 다 채운 뒤에는 "빼기"만 남으므로 고르지 않은 숫자만 막는다.
+          //
+          // 이 컴포넌트는 자릿수가 몇인지 전혀 모른다. 다 찼는지(isGuessFull)만 받으면 되므로
+          // 난이도가 3자리든 5자리든 여기는 고칠 것이 없다.
           const isDisabled = isGameOver || (isGuessFull && !isPicked);
 
           return (

@@ -6,6 +6,7 @@
 
 import { MAX_ATTEMPTS } from './constants/gameConstants.js';
 import { useBaseballGame } from './hooks/useBaseballGame.js';
+import DifficultySelector from './components/DifficultySelector.jsx';
 import GuessInput from './components/GuessInput.jsx';
 import NumberPad from './components/NumberPad.jsx';
 import ResultBanner from './components/ResultBanner.jsx';
@@ -31,6 +32,7 @@ function App() {
     handleBackspace,
     handleSubmit,
     handleRestart,
+    handleChangeDigitCount,
     handleToggleBeginnerMode,
   } = useBaseballGame();
 
@@ -42,6 +44,12 @@ function App() {
           {attemptCount} / {MAX_ATTEMPTS}
         </p>
       </header>
+
+      {/*
+        난이도는 판을 시작하기 전에 고르는 것이라 맨 위에 둔다.
+        누르면 그 자리에서 새 판이 시작된다(정답·기록·입력이 모두 초기화된다).
+      */}
+      <DifficultySelector digitCount={digitCount} onSelect={handleChangeDigitCount} />
 
       <GuessInput currentGuess={currentGuess} digitCount={digitCount} />
 

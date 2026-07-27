@@ -170,7 +170,7 @@
   cursor: pointer;
 }
 
-/* 3자리를 다 채우기 전에는 누를 수 없다는 것이 색과 커서 모양으로 함께 보이게 한다. */
+/* 자릿수를 다 채우기 전에는 누를 수 없다는 것이 색과 커서 모양으로 함께 보이게 한다. */
 .submitButton:disabled {
   background: var(--color-disabled-bg);
   color: var(--color-disabled-text);
