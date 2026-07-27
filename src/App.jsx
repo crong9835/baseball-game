@@ -23,7 +23,7 @@ function App() {
     attemptCount,
     isGuessFull,
     isGameOver,
-    handleDigitClick,
+    handleDigitToggle,
     handleBackspace,
     handleClear,
     handleSubmit,
@@ -45,7 +45,7 @@ function App() {
       <NumberPad
         currentGuess={currentGuess}
         isGameOver={isGameOver}
-        onDigitClick={handleDigitClick}
+        onDigitToggle={handleDigitToggle}
         onBackspace={handleBackspace}
         onClear={handleClear}
       />

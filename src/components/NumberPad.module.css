@@ -40,6 +40,26 @@
   color: var(--color-primary);
 }
 
+/*
+ * 지금 골라둔 숫자.
+ * 흐리게(비활성처럼) 보이면 "다시 눌러서 뺄 수 있다"는 것이 전달되지 않으므로,
+ * 반대로 또렷하게 채워서 "선택됨"으로 보이게 한다.
+ */
+.pickedDigitButton {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-primary-text);
+}
+
+/*
+ * :not(:disabled)까지 똑같이 붙인 이유:
+ * 위의 .digitButton:hover:not(:disabled)와 조건 개수를 맞춰야 이 규칙이 이긴다.
+ * 그러지 않으면 마우스를 올렸을 때 글자가 파랑이 되어 파란 배경에 묻힌다.
+ */
+.pickedDigitButton:hover:not(:disabled) {
+  color: var(--color-primary-text);
+}
+
 .digitButton:disabled {
   background: var(--color-disabled-bg);
   color: var(--color-disabled-text);

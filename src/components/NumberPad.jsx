@@ -12,7 +12,21 @@ import styles from './NumberPad.module.css';
 // 컴포넌트 안에서 만들면 화면이 다시 그려질 때마다 똑같은 배열을 새로 만들게 된다.
 const ALL_DIGITS = createAllDigits();
 
-function NumberPad({ currentGuess, isGameOver, onDigitClick, onBackspace, onClear }) {
+/**
+ * 숫자 버튼 하나에 붙일 CSS 클래스 이름을 정한다.
+ * 이미 고른 숫자는 "지금 눌려 있다"가 눈에 보여야 다시 눌러 뺄 수 있다는 것도 짐작이 된다.
+ */
+function getDigitButtonClassName(isPicked) {
+  const classNames = [styles.digitButton];
+
+  if (isPicked) {
+    classNames.push(styles.pickedDigitButton);
+  }
+
+  return classNames.join(' ');
+}
+
+function NumberPad({ currentGuess, isGameOver, onDigitToggle, onBackspace, onClear }) {
   const isGuessFull = currentGuess.length === DIGIT_COUNT;
   const hasNoInput = currentGuess.length === 0;
 
@@ -20,18 +34,23 @@ function NumberPad({ currentGuess, isGameOver, onDigitClick, onBackspace, onClea
     <div className={styles.numberPad}>
       <div className={styles.digitGrid}>
         {ALL_DIGITS.map((digit) => {
-          // 같은 숫자를 두 번 넣을 수 없다는 규칙을 버튼 단계에서 막는다.
-          // 잘못된 입력을 아예 못 하게 만드는 편이, 입력 후 오류를 알려주는 것보다 쓰기 편하다.
-          const isAlreadyUsed = currentGuess.includes(digit);
-          const isDisabled = isAlreadyUsed || isGuessFull || isGameOver;
+          const isPicked = currentGuess.includes(digit);
+
+          // 이미 고른 숫자는 막지 않는다. 다시 눌러서 빼는 것이 이 버튼의 또 다른 역할이기 때문이다.
+          // 세 자리를 다 채운 뒤에는 "빼기"만 남으므로 고르지 않은 숫자만 막는다.
+          const isDisabled = isGameOver || (isGuessFull && !isPicked);
 
           return (
             <button
               key={digit}
               type="button"
-              className={styles.digitButton}
+              className={getDigitButtonClassName(isPicked)}
               disabled={isDisabled}
-              onClick={() => onDigitClick(digit)}
+              /*
+               * onClick={onDigitToggle(digit)}이라고 쓰면 화면을 그리는 순간 실행돼 버린다.
+               * 값을 넘겨야 하므로 화살표 함수로 한 겹 감싸 "나중에 부를 함수"를 만든다.
+               */
+              onClick={() => onDigitToggle(digit)}
             >
               {digit}
             </button>
