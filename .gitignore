@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# 로컬에서만 쓰는 작업 기록 폴더 (저장소에 올리지 않는다)
+history/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
