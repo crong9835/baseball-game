@@ -1,0 +1,43 @@
+/*
+ * 전역 스타일 파일.
+ * 여기에는 앱 전체에 공통으로 적용되는 것만 둔다 (색상 변수, 폰트, body 기본값).
+ * 컴포넌트 하나에만 필요한 스타일은 여기가 아니라 각 컴포넌트의 *.module.css에 쓴다.
+ */
+
+/*
+ * 색상과 간격을 :root에 변수로 모아둔다.
+ * 나중에 "버튼 색을 바꾸고 싶다"가 생기면 이 파일 한 곳만 고치면 되기 때문이다.
+ * (매직 넘버를 코드 곳곳에 흩어 놓지 않기 위한 CSS 쪽 장치)
+ */
+:root {
+  --color-text: #1f2933;
+  --color-text-muted: #6b7280;
+  --color-background: #f9fafb;
+  --color-surface: #ffffff;
+  --color-border: #d1d5db;
+  --color-primary: #2563eb;
+  --color-primary-text: #ffffff;
+  --color-disabled-bg: #e5e7eb;
+  --color-disabled-text: #9ca3af;
+
+  --font-sans: system-ui, 'Segoe UI', 'Malgun Gothic', sans-serif;
+
+  font-family: var(--font-sans);
+  color: var(--color-text);
+  background: var(--color-background);
+}
+
+/*
+ * box-sizing: border-box는 padding과 border를 요소 너비 안에 포함시킨다.
+ * 이걸 켜두지 않으면 버튼에 padding을 줄 때마다 크기 계산이 어긋나서 레이아웃이 틀어진다.
+ */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100svh;
+}
