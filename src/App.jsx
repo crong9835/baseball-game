@@ -74,7 +74,7 @@ function App() {
           isBeginnerMode={isBeginnerMode}
           onToggle={handleToggleBeginnerMode}
         />
-        <HistoryList history={history} />
+        <HistoryList history={history} isBeginnerMode={isBeginnerMode} />
       </section>
     </main>
   );

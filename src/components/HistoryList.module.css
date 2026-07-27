@@ -49,7 +49,38 @@
   font-variant-numeric: tabular-nums;
 }
 
+/*
+ * S / B / OUT 세 조각 사이의 공백을 JSX가 아니라 gap이 만들게 한다.
+ * JSX는 태그와 태그 사이의 줄바꿈을 공백으로 남기지 않아서,
+ * 여기에 gap이 없으면 "S:1B:1OUT:1"처럼 붙어 버린다.
+ */
 .result {
+  display: inline-flex;
+  gap: var(--space-small);
   font-size: 15px;
   font-variant-numeric: tabular-nums;
+}
+
+/* 초보 모드가 꺼져 있을 때 세 조각이 공통으로 갖는 모양 (색 없음) */
+.scorePart {
+  color: var(--color-text);
+}
+
+/*
+ * 색만으로 구분하면 색을 구별하기 어려운 사람에게는 아무 차이가 없다.
+ * 그래서 중요한 둘(스트라이크, 볼)은 굵기도 함께 다르게 준다.
+ */
+.strike {
+  color: var(--color-strike);
+  font-weight: 600;
+}
+
+.ball {
+  color: var(--color-ball);
+  font-weight: 600;
+}
+
+/* OUT은 신경 쓰지 않아도 되는 값이라 오히려 흐리게 물러나게 한다. */
+.out {
+  color: var(--color-text-muted);
 }

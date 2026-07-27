@@ -20,6 +20,13 @@
   --color-disabled-bg: #e5e7eb;
   --color-disabled-text: #9ca3af;
 
+  /*
+   * 초보 모드에서 판정 결과를 구분하는 색.
+   * 볼은 순수한 노랑(#facc15)이면 흰 배경에서 거의 안 읽혀서 한 톤 진하게 잡았다.
+   */
+  --color-strike: #dc2626;
+  --color-ball: #ca8a04;
+
   --font-sans: system-ui, 'Segoe UI', 'Malgun Gothic', sans-serif;
 
   /*
