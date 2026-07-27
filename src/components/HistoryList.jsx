@@ -32,7 +32,7 @@ function createResultParts(record) {
     parts.push({ text: `${record.out}아웃`, digitResult: DIGIT_RESULT.OUT });
   }
 
-  // 셋을 더하면 항상 DIGIT_COUNT(3)이므로 하나는 반드시 0보다 크다.
+  // 셋을 더하면 항상 자릿수와 같으므로 하나는 반드시 0보다 크다.
   // 그래서 parts가 빈 배열이 되는 경우는 없고, 빈 칸을 채울 예외 처리도 필요 없다.
   return parts;
 }

@@ -5,7 +5,7 @@
  * 나중에 화면을 통째로 다시 만들어도 이 파일은 그대로 재사용된다.
  */
 
-import { DIGIT_COUNT, MIN_DIGIT, MAX_DIGIT, DIGIT_RESULT } from '../constants/gameConstants.js';
+import { MIN_DIGIT, MAX_DIGIT, DIGIT_RESULT } from '../constants/gameConstants.js';
 
 /**
  * 0부터 9까지를 순서대로 담은 배열을 만든다.
@@ -50,17 +50,23 @@ function shuffleArray(originalList) {
 }
 
 /**
- * 중복 없는 DIGIT_COUNT개의 숫자로 정답을 만든다.
- * 예: [0, 5, 7]
+ * 중복 없는 digitCount개의 숫자로 정답을 만든다.
+ * 예: createAnswer(3) -> [0, 5, 7]
+ *
+ * 자릿수를 상수로 읽지 않고 인자로 받는 이유:
+ * 난이도(3·4·5자리)는 사용자가 게임 중에 바꿀 수 있는 값이라 이 파일이 미리 알 수 없다.
+ * 부르는 쪽이 넘겨주게 하면 이 함수는 난이도가 몇 개든 그대로 쓸 수 있다.
  *
  * "랜덤으로 하나 뽑고 겹치면 다시 뽑기" 방식 대신
- * "0~9를 전부 섞은 뒤 앞에서 3개를 가져오기" 방식을 골랐다.
+ * "0~9를 전부 섞은 뒤 앞에서 필요한 개수만 가져오기" 방식을 골랐다.
  * 다시 뽑는 방식은 운이 나쁘면 몇 번을 도는지 알 수 없지만, 이 방식은 항상 한 번에 끝난다.
+ *
+ * @param {number} digitCount 정답의 자릿수 (3, 4, 5)
  */
-export function createAnswer() {
+export function createAnswer(digitCount) {
   const allDigits = createAllDigits();
   const shuffledDigits = shuffleArray(allDigits);
-  const answer = shuffledDigits.slice(0, DIGIT_COUNT);
+  const answer = shuffledDigits.slice(0, digitCount);
 
   return answer;
 }
@@ -158,7 +164,8 @@ export function collectDigitHints(history) {
  *
  * 판정 규칙을 여기에 다시 쓰지 않고 judgeEachDigit이 낸 결과를 세기만 한다.
  * 같은 규칙이 두 군데 있으면 한쪽만 고쳤을 때 색과 점수가 서로 어긋나기 때문이다.
- * strike + ball + out은 항상 DIGIT_COUNT(3)가 된다.
+ * 한 자리는 셋 중 하나만 되므로 strike + ball + out은 항상 자릿수와 같다.
+ * (이 함수는 자릿수를 따로 받지 않는다. guess의 길이가 곧 자릿수이기 때문이다)
  *
  * @param {number[]} answer 정답 (예: [1, 2, 3])
  * @param {number[]} guess  사용자 입력 (예: [1, 3, 4])

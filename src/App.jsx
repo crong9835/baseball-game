@@ -16,6 +16,7 @@ import styles from './App.module.css';
 function App() {
   const {
     answer,
+    digitCount,
     currentGuess,
     history,
     gameStatus,
@@ -42,7 +43,7 @@ function App() {
         </p>
       </header>
 
-      <GuessInput currentGuess={currentGuess} />
+      <GuessInput currentGuess={currentGuess} digitCount={digitCount} />
 
       <NumberPad
         currentGuess={currentGuess}
