@@ -17,11 +17,17 @@ import {
 } from '../utils/gameLogic.js';
 
 export function useBaseballGame() {
-  // 정답의 자릿수(난이도). 사용자가 게임 중에 바꿀 수 있으므로 state로 둔다.
+  /*
+   * 여기 세 개는 "이 판을 어떤 규칙으로 하는가"다.
+   * 셋 다 바꾸는 순간 새 판이 시작된다. 예외는 없다.
+   *
+   * 판 중간에 규칙이 바뀌면 앞의 기록과 뒤의 기록이 서로 다른 조건으로 쌓인다.
+   * 나중에 순위를 매기는 기능을 붙일 때, 힌트를 보며 절반을 풀고 중간에 끈 판이
+   * "힌트 없이 6회"로 남으면 그건 기록이 아니라 구멍이다.
+   */
   const [digitCount, setDigitCount] = useState(DEFAULT_DIGIT_COUNT);
-
-  // 시도 횟수 제한을 없앨지. 이것도 게임 규칙을 바꾸는 값이라 켜고 끄면 새 판이 시작된다.
   const [isUnlimitedMode, setIsUnlimitedMode] = useState(false);
+  const [isBeginnerMode, setIsBeginnerMode] = useState(false);
 
   // createAnswer를 그대로 부르지 않고 함수로 감싼 이유:
   // 화면이 다시 그려질 때마다 정답을 새로 만들어 버리는 낭비를 막기 위해서다.
@@ -31,11 +37,6 @@ export function useBaseballGame() {
   const [currentGuess, setCurrentGuess] = useState([]);
   const [history, setHistory] = useState([]);
   const [gameStatus, setGameStatus] = useState(GAME_STATUS.PLAYING);
-
-  // 이것만 성격이 다르다. 나머지 6개는 "게임이 어떤 규칙으로 어디까지 진행됐는가"이고,
-  // 이 값은 "결과를 어떻게 보여줄까"라는 보기 설정이다.
-  // 그래서 handleRestart에서도 일부러 되돌리지 않는다. (아래 주석 참고)
-  const [isBeginnerMode, setIsBeginnerMode] = useState(false);
 
   // 아래 값들은 state에서 바로 계산할 수 있으므로 state로 만들지 않는다.
   // state가 바뀌면 이 훅을 쓰는 컴포넌트가 다시 실행되면서 자동으로 다시 계산된다.
@@ -103,25 +104,23 @@ export function useBaseballGame() {
     );
   }
 
-  function handleToggleBeginnerMode() {
-    setIsBeginnerMode(!isBeginnerMode);
-  }
-
   /*
    * 판을 새로 까는 일을 한곳에 모았다.
-   * "다시하기"와 "난이도 바꾸기"가 하는 일이 자릿수만 빼면 똑같기 때문이다.
-   * 둘로 나눠 쓰면 나중에 초기화할 것이 하나 늘었을 때 한쪽만 고치기 쉽다.
+   * 설정을 바꾸는 세 가지와 "다시하기"가 하는 일이 정확히 같기 때문이다.
+   * 넷으로 나눠 쓰면 나중에 초기화할 것이 하나 늘었을 때 한 군데를 빠뜨리기 쉽다.
+   *
+   * 값을 하나씩 나열하지 않고 객체 하나로 받는 이유:
+   * startNewGame(3, false, true)라고 쓰면 두 번째 false가 무엇인지 알 수 없다.
+   * 부르는 쪽에서 이름이 보여야 무엇이 바뀌는 조작인지 한눈에 읽힌다.
    *
    * setDigitCount는 즉시 반영되지 않으므로, 방금 정한 값을 createAnswer에 직접 넘긴다.
    * digitCount를 읽으면 아직 바뀌기 전 자릿수라 정답 길이가 어긋난다.
-   *
-   * 여기서 setIsBeginnerMode(false)를 부르지 않는 것은 실수가 아니다.
-   * 새 게임을 시작했다고 켜둔 초보 모드가 꺼지면 사용자는 버그라고 느낀다.
    */
-  function startNewGame(nextDigitCount, nextIsUnlimitedMode) {
-    setDigitCount(nextDigitCount);
-    setIsUnlimitedMode(nextIsUnlimitedMode);
-    setAnswer(createAnswer(nextDigitCount));
+  function startNewGame(nextSettings) {
+    setDigitCount(nextSettings.digitCount);
+    setIsUnlimitedMode(nextSettings.isUnlimitedMode);
+    setIsBeginnerMode(nextSettings.isBeginnerMode);
+    setAnswer(createAnswer(nextSettings.digitCount));
     setCurrentGuess([]);
     setHistory([]);
     setGameStatus(GAME_STATUS.PLAYING);
@@ -129,19 +128,21 @@ export function useBaseballGame() {
 
   // 설정은 그대로 두고 정답만 새로 뽑는다.
   function handleRestart() {
-    startNewGame(digitCount, isUnlimitedMode);
+    startNewGame({ digitCount, isUnlimitedMode, isBeginnerMode });
   }
 
-  // 난이도를 바꾸면 정답의 길이가 달라지므로 진행 중인 판을 이어갈 수 없다.
-  // 그래서 "난이도 바꾸기"는 곧 "그 자릿수로 새 판 시작하기"다.
+  // 아래 셋은 규칙을 하나씩만 바꿔서 새 판을 시작한다.
+  // 나머지 둘을 그대로 넘기는 것이 눈에 보이므로 무엇이 바뀌는지 헷갈리지 않는다.
   function handleChangeDigitCount(nextDigitCount) {
-    startNewGame(nextDigitCount, isUnlimitedMode);
+    startNewGame({ digitCount: nextDigitCount, isUnlimitedMode, isBeginnerMode });
   }
 
-  // 무제한도 게임 규칙이라 판 중간에 바뀌면 앞의 기록과 뒤의 기록이 서로 다른 규칙으로
-  // 쌓인다. 그래서 난이도와 똑같이 새 판을 시작한다.
   function handleToggleUnlimitedMode() {
-    startNewGame(digitCount, !isUnlimitedMode);
+    startNewGame({ digitCount, isUnlimitedMode: !isUnlimitedMode, isBeginnerMode });
+  }
+
+  function handleToggleBeginnerMode() {
+    startNewGame({ digitCount, isUnlimitedMode, isBeginnerMode: !isBeginnerMode });
   }
 
   // setCurrentGuess 같은 setter는 일부러 내보내지 않는다.

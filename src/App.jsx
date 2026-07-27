@@ -88,19 +88,19 @@ function App() {
         초보 모드 체크박스가 바꾸는 대상이 바로 아래 목록이라는 것을 간격으로 보여주기 위해서다.
 
         같은 SettingToggle을 두 번 쓴다. 생김새와 동작이 똑같고 글자만 다르기 때문이다.
-        무제한 쪽에만 "새 판이 시작됩니다"를 적어둔 이유는, 눌렀을 때 결과가 서로 다르기
-        때문이다. 초보 모드는 판을 건드리지 않지만 무제한은 판을 새로 시작한다.
+        둘 다 "바꾸면 새 판"을 적어둔다. 눌렀을 때 진행 중이던 판이 사라지는데
+        그것이 글자에 안 적혀 있으면 눌러보고 나서야 알게 된다.
       */}
       <section className={styles.historySection}>
         <SettingToggle
           label="초보 모드"
-          description="알아낸 숫자를 버튼에 색으로 표시"
+          description="알아낸 숫자를 버튼에 색으로 · 바꾸면 새 판"
           isOn={isBeginnerMode}
           onToggle={handleToggleBeginnerMode}
         />
         <SettingToggle
           label="무제한 기회"
-          description="맞힐 때까지 시도 (켜면 새 판이 시작됩니다)"
+          description="맞힐 때까지 시도 · 바꾸면 새 판"
           isOn={isUnlimitedMode}
           onToggle={handleToggleUnlimitedMode}
         />
