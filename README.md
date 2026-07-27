@@ -34,12 +34,14 @@ npm run build   # 배포용 빌드
 
 ```
 src/
-├─ main.jsx          React 진입점
-├─ App.jsx           게임 상태를 소유하는 최상위 컴포넌트
-├─ index.css         전역 스타일
-├─ constants/        여러 곳에서 함께 쓰는 상수 (자릿수, 최대 시도 횟수)
-├─ utils/            React와 무관한 순수 게임 로직 (정답 생성, 판정)
-└─ components/       화면 조각들 (.jsx와 .module.css를 나란히 배치)
+├─ main.jsx                        React 진입점
+├─ App.jsx                         게임 상태를 소유하는 최상위 컴포넌트
+├─ index.css                       전역 스타일
+├─ constants/
+│  └─ gameConstants.js             설정값 (자릿수 3, 최대 시도 10번)
+├─ utils/
+│  └─ gameLogic.js                 게임 계산 (정답 생성, 판정)
+└─ components/                     화면 조각들 (.jsx와 .module.css를 나란히 배치)
 ```
 
 ## 참고

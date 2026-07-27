@@ -1,10 +1,11 @@
 /*
- * 숫자 야구의 게임 로직만 모아둔 파일.
+ * 숫자 야구의 게임 로직(계산하는 함수)만 모아둔 파일.
+ * 값만 들어있는 constants/gameConstants.js와 짝을 이룬다. 이쪽은 "동작", 저쪽은 "설정값"이다.
  * React를 전혀 쓰지 않아서 브라우저 없이 node로 바로 실행해 검증할 수 있고,
  * 나중에 화면을 통째로 다시 만들어도 이 파일은 그대로 재사용된다.
  */
 
-import { DIGIT_COUNT, MIN_DIGIT, MAX_DIGIT } from '../constants/game.js';
+import { DIGIT_COUNT, MIN_DIGIT, MAX_DIGIT } from '../constants/gameConstants.js';
 
 /**
  * 0부터 9까지를 순서대로 담은 배열을 만든다.
