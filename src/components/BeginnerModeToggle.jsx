@@ -27,7 +27,7 @@ function BeginnerModeToggle({ isBeginnerMode, onToggle }) {
         onChange={onToggle}
       />
       초보 모드
-      <span className={styles.description}>스트라이크·볼을 색으로 구분</span>
+      <span className={styles.description}>알아낸 숫자를 버튼에 색으로 표시</span>
     </label>
   );
 }

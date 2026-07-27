@@ -7,34 +7,62 @@ import { DIGIT_RESULT } from '../constants/gameConstants.js';
 import styles from './HistoryList.module.css';
 
 /**
- * 판정 결과를 화면에 쓸 글자로 바꾼다.
- * 예: { strike: 1, ball: 1, out: 1 } -> "S:1 B:1 OUT:1"
+ * 판정 결과를 화면에 쓸 조각들로 바꾼다.
+ * 예: { strike: 2, ball: 1 } -> [{ text: '2스트라이크' }, { text: '1볼' }]
  *
- * 이 표기는 참고 사이트(sciencelove.com/2653)의 표시 방식을 그대로 따랐다.
+ * 예전에는 "S:2 B:1 OUT:0"처럼 셋을 항상 다 적었지만,
+ * 야구 규칙을 모르면 읽을 수 없고 0인 값까지 눈에 들어와 오히려 방해가 됐다.
+ * 그래서 한글로 풀어쓰고, 0개인 것은 아예 적지 않는다.
+ *
+ * 조각을 나누는 이유는 스트라이크와 볼에 서로 다른 색을 입혀야 하기 때문이다.
+ * 문자열 하나로 만들면 그 안에서 일부만 색을 바꿀 수 없다.
  */
-function formatResult(record) {
-  return `S:${record.strike} B:${record.ball} OUT:${record.out}`;
+function createResultParts(record) {
+  const parts = [];
+
+  if (record.strike > 0) {
+    parts.push({ text: `${record.strike}스트라이크`, digitResult: DIGIT_RESULT.STRIKE });
+  }
+
+  if (record.ball > 0) {
+    parts.push({ text: `${record.ball}볼`, digitResult: DIGIT_RESULT.BALL });
+  }
+
+  // 둘 다 0이면 오른쪽이 텅 비어 "아직 판정이 안 됐나?"로 보인다. 아웃이라고 분명히 적는다.
+  if (parts.length === 0) {
+    parts.push({ text: '아웃', digitResult: DIGIT_RESULT.OUT });
+  }
+
+  return parts;
 }
 
 /**
- * 입력한 숫자 한 개에 붙일 CSS 클래스 이름을 정한다.
- *
- * 초보 모드가 꺼져 있으면 색 클래스를 아예 붙이지 않아 예전과 똑같이 보인다.
- * (GuessInput의 getSlotClassName과 같은 방식 — 배열에 담았다가 마지막에 합친다)
+ * 판정에 맞는 색 클래스 하나를 고른다.
+ * 숫자에도 오른쪽 글자에도 같은 색 규칙을 써야 해서 한 곳에 모아뒀다.
  */
-function getDigitClassName(digitResult, isBeginnerMode) {
-  const classNames = [styles.digit];
-
-  if (!isBeginnerMode) {
-    return classNames.join(' ');
+function getColorClassName(digitResult) {
+  if (digitResult === DIGIT_RESULT.STRIKE) {
+    return styles.strikeColor;
   }
 
-  if (digitResult === DIGIT_RESULT.STRIKE) {
-    classNames.push(styles.strikeDigit);
-  } else if (digitResult === DIGIT_RESULT.BALL) {
-    classNames.push(styles.ballDigit);
-  } else {
-    classNames.push(styles.outDigit);
+  if (digitResult === DIGIT_RESULT.BALL) {
+    return styles.ballColor;
+  }
+
+  return styles.outColor;
+}
+
+/**
+ * 화면 조각 하나에 붙일 CSS 클래스 이름을 정한다.
+ *
+ * 초보 모드가 꺼져 있으면 색 클래스를 아예 붙이지 않아 전부 같은 검정으로 보인다.
+ * (GuessInput의 getSlotClassName과 같은 방식 — 배열에 담았다가 마지막에 합친다)
+ */
+function getPartClassName(baseClassName, digitResult, isBeginnerMode) {
+  const classNames = [baseClassName];
+
+  if (isBeginnerMode) {
+    classNames.push(getColorClassName(digitResult));
   }
 
   return classNames.join(' ');
@@ -64,14 +92,23 @@ function HistoryList({ history, isBeginnerMode }) {
             {record.guess.map((digit, position) => (
               <span
                 key={position}
-                className={getDigitClassName(record.digitResults[position], isBeginnerMode)}
+                className={getPartClassName(styles.digit, record.digitResults[position], isBeginnerMode)}
               >
                 {digit}
               </span>
             ))}
           </span>
 
-          <span className={styles.result}>{formatResult(record)}</span>
+          <span className={styles.result}>
+            {createResultParts(record).map((part) => (
+              <span
+                key={part.text}
+                className={getPartClassName(styles.resultPart, part.digitResult, isBeginnerMode)}
+              >
+                {part.text}
+              </span>
+            ))}
+          </span>
         </li>
       ))}
     </ul>

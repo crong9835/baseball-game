@@ -55,31 +55,43 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* "2스트라이크 1볼"처럼 조각이 둘일 때의 사이 간격도 gap이 만든다. */
 .result {
-  font-size: 15px;
-  font-variant-numeric: tabular-nums;
+  display: inline-flex;
+  gap: var(--space-small);
+  font-size: 14px;
 }
 
-/* 초보 모드가 꺼져 있을 때 모든 숫자가 갖는 기본 모양 (색 없음) */
+/* 초보 모드가 꺼져 있을 때 숫자와 판정 글자가 갖는 기본 모양 (색 없음) */
 .digit {
   color: var(--color-text);
 }
 
+.resultPart {
+  color: var(--color-text-muted);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.strikeColor {
+  color: var(--color-strike);
+}
+
 /*
  * 색만으로 구분하면 색을 구별하기 어려운 사람에게는 아무 차이가 없다.
- * 그래서 자리까지 맞은 숫자(스트라이크)에는 밑줄을 함께 그어 형태로도 구분되게 한다.
+ * 그래서 자리까지 맞은 숫자에는 밑줄을 함께 그어 형태로도 구분되게 한다.
+ * .digit과 함께 쓸 때만 적용해서 오른쪽 "2스트라이크" 글자에는 밑줄이 가지 않게 한다.
  */
-.strikeDigit {
-  color: var(--color-strike);
+.digit.strikeColor {
   text-decoration: underline;
   text-underline-offset: 4px;
 }
 
-.ballDigit {
+.ballColor {
   color: var(--color-ball);
 }
 
 /* 정답에 아예 없는 숫자는 더 볼 필요가 없으니 흐리게 물러나게 한다. */
-.outDigit {
+.outColor {
   color: var(--color-text-muted);
 }

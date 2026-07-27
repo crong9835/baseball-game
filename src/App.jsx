@@ -23,9 +23,9 @@ function App() {
     attemptCount,
     isGuessFull,
     isGameOver,
+    digitHints,
     handleDigitToggle,
     handleBackspace,
-    handleClear,
     handleSubmit,
     handleRestart,
     handleToggleBeginnerMode,
@@ -44,26 +44,24 @@ function App() {
 
       <NumberPad
         currentGuess={currentGuess}
+        digitHints={digitHints}
+        isBeginnerMode={isBeginnerMode}
+        isGuessFull={isGuessFull}
         isGameOver={isGameOver}
         onDigitToggle={handleDigitToggle}
         onBackspace={handleBackspace}
-        onClear={handleClear}
+        onSubmit={handleSubmit}
       />
 
-      <button
-        type="button"
-        className={styles.submitButton}
-        disabled={!isGuessFull || isGameOver}
-        onClick={handleSubmit}
-      >
-        확인
+      {/*
+        다시하기는 숫자 입력과 상관없는 조작이라 NumberPad에 넣지 않고 여기에 둔다.
+        게임이 끝나기 전에도 언제든 새 판을 시작할 수 있어야 하므로 항상 보여준다.
+      */}
+      <button type="button" className={styles.restartButton} onClick={handleRestart}>
+        다시하기
       </button>
 
-      <ResultBanner
-        gameStatus={gameStatus}
-        answer={answer}
-        onRestart={handleRestart}
-      />
+      <ResultBanner gameStatus={gameStatus} answer={answer} />
 
       {/*
         체크박스와 기록 목록을 한 덩어리로 묶는다.

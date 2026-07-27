@@ -23,15 +23,3 @@
   font-size: 20px;
   font-weight: 700;
 }
-
-.restartButton {
-  width: 100%;
-  min-height: var(--button-min-size);
-  border: none;
-  border-radius: var(--radius);
-  background: var(--color-primary);
-  color: var(--color-primary-text);
-  font-size: 18px;
-  font-weight: 600;
-  cursor: pointer;
-}

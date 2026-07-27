@@ -1,10 +1,10 @@
 /*
- * 0~9 숫자 버튼과 지우기/초기화 버튼을 그리는 컴포넌트.
+ * 0~9 숫자 버튼과 그 아래 지우기/확인 버튼을 그리는 컴포넌트.
  * 버튼이 눌려도 스스로 값을 바꾸지 않고, 부모(App)가 준 함수를 호출해서 "눌렸다"고 알리기만 한다.
  * 게임 상태는 App이 갖고 있으므로 실제 처리는 App이 한다.
  */
 
-import { DIGIT_COUNT } from '../constants/gameConstants.js';
+import { DIGIT_RESULT } from '../constants/gameConstants.js';
 import { createAllDigits } from '../utils/gameLogic.js';
 import styles from './NumberPad.module.css';
 
@@ -13,11 +13,37 @@ import styles from './NumberPad.module.css';
 const ALL_DIGITS = createAllDigits();
 
 /**
- * 숫자 버튼 하나에 붙일 CSS 클래스 이름을 정한다.
- * 이미 고른 숫자는 "지금 눌려 있다"가 눈에 보여야 다시 눌러 뺄 수 있다는 것도 짐작이 된다.
+ * 힌트에 맞는 색 클래스 하나를 고른다.
+ * 아직 한 번도 써보지 않은 숫자(hint가 undefined)는 아무 색도 주지 않는다.
  */
-function getDigitButtonClassName(isPicked) {
+function getHintClassName(digitHint) {
+  if (digitHint === DIGIT_RESULT.STRIKE) {
+    return styles.strikeHint;
+  }
+
+  if (digitHint === DIGIT_RESULT.BALL) {
+    return styles.ballHint;
+  }
+
+  if (digitHint === DIGIT_RESULT.OUT) {
+    return styles.outHint;
+  }
+
+  return '';
+}
+
+/**
+ * 숫자 버튼 하나에 붙일 CSS 클래스 이름을 정한다.
+ *
+ * 힌트 색과 "지금 골랐다" 표시는 서로를 가리면 안 된다.
+ * 그래서 힌트는 배경색으로, 고른 표시는 파란 테두리로 나눠서 둘 다 보이게 한다.
+ */
+function getDigitButtonClassName(isPicked, digitHint, isBeginnerMode) {
   const classNames = [styles.digitButton];
+
+  if (isBeginnerMode) {
+    classNames.push(getHintClassName(digitHint));
+  }
 
   if (isPicked) {
     classNames.push(styles.pickedDigitButton);
@@ -26,8 +52,16 @@ function getDigitButtonClassName(isPicked) {
   return classNames.join(' ');
 }
 
-function NumberPad({ currentGuess, isGameOver, onDigitToggle, onBackspace, onClear }) {
-  const isGuessFull = currentGuess.length === DIGIT_COUNT;
+function NumberPad({
+  currentGuess,
+  digitHints,
+  isBeginnerMode,
+  isGuessFull,
+  isGameOver,
+  onDigitToggle,
+  onBackspace,
+  onSubmit,
+}) {
   const hasNoInput = currentGuess.length === 0;
 
   return (
@@ -44,7 +78,7 @@ function NumberPad({ currentGuess, isGameOver, onDigitToggle, onBackspace, onCle
             <button
               key={digit}
               type="button"
-              className={getDigitButtonClassName(isPicked)}
+              className={getDigitButtonClassName(isPicked, digitHints[digit], isBeginnerMode)}
               disabled={isDisabled}
               /*
                * onClick={onDigitToggle(digit)}이라고 쓰면 화면을 그리는 순간 실행돼 버린다.
@@ -58,6 +92,10 @@ function NumberPad({ currentGuess, isGameOver, onDigitToggle, onBackspace, onCle
         })}
       </div>
 
+      {/*
+        "초기화"는 없앴다. 숫자를 다시 눌러 뺄 수 있게 되면서 쓸 일이 거의 없어졌고,
+        그 자리에 손가락이 가장 자주 가는 "확인"을 두는 편이 훨씬 편하기 때문이다.
+      */}
       <div className={styles.editRow}>
         <button
           type="button"
@@ -69,11 +107,11 @@ function NumberPad({ currentGuess, isGameOver, onDigitToggle, onBackspace, onCle
         </button>
         <button
           type="button"
-          className={styles.editButton}
-          disabled={hasNoInput || isGameOver}
-          onClick={onClear}
+          className={styles.submitButton}
+          disabled={!isGuessFull || isGameOver}
+          onClick={onSubmit}
         >
-          초기화
+          확인
         </button>
       </div>
     </div>

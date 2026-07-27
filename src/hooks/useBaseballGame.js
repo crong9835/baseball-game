@@ -7,7 +7,12 @@
 import { useState } from 'react';
 
 import { DIGIT_COUNT, MAX_ATTEMPTS, GAME_STATUS } from '../constants/gameConstants.js';
-import { createAnswer, scoreGuess, judgeEachDigit } from '../utils/gameLogic.js';
+import {
+  createAnswer,
+  scoreGuess,
+  judgeEachDigit,
+  collectDigitHints,
+} from '../utils/gameLogic.js';
 
 /**
  * 이번 시도 결과로 게임이 어떤 상태가 되는지 정한다.
@@ -48,6 +53,10 @@ export function useBaseballGame() {
   const isGuessFull = currentGuess.length === DIGIT_COUNT;
   const isGameOver = gameStatus !== GAME_STATUS.PLAYING;
 
+  // 힌트도 history에서 계산되는 값이라 state로 만들지 않는다.
+  // history가 바뀌면 이 훅이 다시 실행되면서 저절로 다시 계산된다.
+  const digitHints = collectDigitHints(history);
+
   /*
    * 같은 숫자를 한 번 더 누르면 넣지 않고 뺀다.
    * 잘못 누른 숫자를 고치려고 "지우기"까지 손을 옮기지 않아도 되게 하려는 것이다.
@@ -67,10 +76,6 @@ export function useBaseballGame() {
 
   function handleBackspace() {
     setCurrentGuess(currentGuess.slice(0, -1));
-  }
-
-  function handleClear() {
-    setCurrentGuess([]);
   }
 
   function handleSubmit() {
@@ -119,9 +124,9 @@ export function useBaseballGame() {
     attemptCount,
     isGuessFull,
     isGameOver,
+    digitHints,
     handleDigitToggle,
     handleBackspace,
-    handleClear,
     handleSubmit,
     handleRestart,
     handleToggleBeginnerMode,

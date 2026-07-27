@@ -27,6 +27,10 @@
   --color-strike: #dc2626;
   --color-ball: #ca8a04;
 
+  /* 숫자 버튼 힌트의 배경색. 글자가 계속 읽혀야 하므로 아주 옅게 깐다. */
+  --color-strike-soft: #fee2e2;
+  --color-ball-soft: #fef3c7;
+
   --font-sans: system-ui, 'Segoe UI', 'Malgun Gothic', sans-serif;
 
   /*

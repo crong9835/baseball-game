@@ -99,6 +99,34 @@ export function judgeEachDigit(answer, guess) {
 }
 
 /**
+ * 지금까지의 기록을 훑어서 "0~9 각 숫자에 대해 무엇을 알아냈는가"를 모은다.
+ *
+ * 이것이 초보 모드가 주는 힌트의 알맹이다.
+ * 이미 지나간 기록에 색을 칠하는 것만으로는 "다음에 무엇을 누를까"에 도움이 되지 않는다.
+ * 숫자 버튼 자체에 표시해야 누르기 직전에 보인다.
+ *
+ * @param {object[]} history 시도 기록 (각 기록은 guess와 digitResults를 갖는다)
+ * @returns {object} 숫자를 열쇠로 하는 판정 (예: { 3: 'strike', 7: 'ball', 1: 'out' })
+ */
+export function collectDigitHints(history) {
+  const digitHints = {};
+
+  for (const record of history) {
+    for (const [position, guessedDigit] of record.guess.entries()) {
+      // 같은 숫자를 나중에 다른 자리에 넣어 볼로 나올 수 있다.
+      // 스트라이크가 더 확실한 정보이므로 한 번 알아낸 스트라이크는 덮어쓰지 않는다.
+      const isAlreadyStrike = digitHints[guessedDigit] === DIGIT_RESULT.STRIKE;
+
+      if (!isAlreadyStrike) {
+        digitHints[guessedDigit] = record.digitResults[position];
+      }
+    }
+  }
+
+  return digitHints;
+}
+
+/**
  * 사용자가 낸 답을 정답과 비교해 채점한다.
  *
  * 채점만 하고 승패는 판단하지 않는다.

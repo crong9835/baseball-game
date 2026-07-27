@@ -1,12 +1,15 @@
 /*
- * 게임이 끝났을 때 승패 메시지와 정답, "다시 시작" 버튼을 보여주는 컴포넌트.
+ * 게임이 끝났을 때 승패 메시지와 정답을 보여주는 컴포넌트.
  * 게임이 진행 중일 때는 아무것도 그리지 않는다.
+ *
+ * 예전에는 여기에도 "다시 시작" 버튼이 있었지만,
+ * 화면에 항상 보이는 "다시하기" 버튼이 생겨서 같은 버튼이 두 개가 되므로 뺐다.
  */
 
 import { GAME_STATUS } from '../constants/gameConstants.js';
 import styles from './ResultBanner.module.css';
 
-function ResultBanner({ gameStatus, answer, onRestart }) {
+function ResultBanner({ gameStatus, answer }) {
   const isPlaying = gameStatus === GAME_STATUS.PLAYING;
 
   // 진행 중이면 배너 자체가 필요 없다.
@@ -28,9 +31,6 @@ function ResultBanner({ gameStatus, answer, onRestart }) {
   return (
     <div className={styles.resultBanner}>
       <p className={styles.message}>{message}</p>
-      <button type="button" className={styles.restartButton} onClick={onRestart}>
-        다시 시작
-      </button>
     </div>
   );
 }
