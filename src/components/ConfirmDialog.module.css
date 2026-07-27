@@ -11,14 +11,25 @@
   width: min(320px, calc(100% - var(--space-large) * 2));
   padding: var(--space-large) var(--space-medium);
 
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-medium);
-
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
   background: var(--color-surface);
   color: var(--color-text);
+}
+
+/*
+ * display를 반드시 [open]에 붙여야 한다. 위의 .dialog에 적으면 창이 처음부터 계속 열려 있다.
+ *
+ * 브라우저는 닫힌 <dialog>를 dialog:not([open]) { display: none }으로 감추는데,
+ * 우리가 쓴 CSS는 그 기본 규칙을 항상 이긴다(선택자가 더 단순해도 이긴다).
+ * 그래서 .dialog에 display를 적어두면 "감춰라"가 통째로 무시된다. 실제로 그 버그가 있었다.
+ *
+ * [open]은 showModal()이 켜주는 속성이라 열렸을 때만 이 규칙이 걸린다.
+ */
+.dialog[open] {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-medium);
 }
 
 /* ::backdrop은 <dialog> 뒤에 깔리는 배경이다. 브라우저가 만들어 주므로 요소를 따로 두지 않는다. */
