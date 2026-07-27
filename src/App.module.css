@@ -46,6 +46,17 @@
   font-variant-numeric: tabular-nums;
 }
 
+/*
+ * 초보 모드 체크박스와 기록 목록을 묶는 영역.
+ * .app의 gap(--space-large)을 그대로 두면 둘이 서로 상관없는 것처럼 멀어 보인다.
+ * 여기서 안쪽 간격만 좁혀서 "이 체크박스가 아래 목록을 바꾼다"를 눈으로 보이게 한다.
+ */
+.historySection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-small);
+}
+
 .submitButton {
   width: 100%;
   min-height: var(--button-min-size);

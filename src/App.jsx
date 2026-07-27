@@ -9,6 +9,7 @@ import { useBaseballGame } from './hooks/useBaseballGame.js';
 import GuessInput from './components/GuessInput.jsx';
 import NumberPad from './components/NumberPad.jsx';
 import ResultBanner from './components/ResultBanner.jsx';
+import BeginnerModeToggle from './components/BeginnerModeToggle.jsx';
 import HistoryList from './components/HistoryList.jsx';
 import styles from './App.module.css';
 
@@ -18,6 +19,7 @@ function App() {
     currentGuess,
     history,
     gameStatus,
+    isBeginnerMode,
     attemptCount,
     isGuessFull,
     isGameOver,
@@ -26,6 +28,7 @@ function App() {
     handleClear,
     handleSubmit,
     handleRestart,
+    handleToggleBeginnerMode,
   } = useBaseballGame();
 
   return (
@@ -62,7 +65,17 @@ function App() {
         onRestart={handleRestart}
       />
 
-      <HistoryList history={history} />
+      {/*
+        체크박스와 기록 목록을 한 덩어리로 묶는다.
+        체크박스가 바꾸는 대상이 바로 아래 목록이라는 것을 간격으로 보여주기 위해서다.
+      */}
+      <section className={styles.historySection}>
+        <BeginnerModeToggle
+          isBeginnerMode={isBeginnerMode}
+          onToggle={handleToggleBeginnerMode}
+        />
+        <HistoryList history={history} />
+      </section>
     </main>
   );
 }

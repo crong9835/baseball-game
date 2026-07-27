@@ -37,6 +37,11 @@ export function useBaseballGame() {
   const [history, setHistory] = useState([]);
   const [gameStatus, setGameStatus] = useState(GAME_STATUS.PLAYING);
 
+  // 이것만 성격이 다르다. 나머지 4개는 "게임이 어디까지 진행됐는가"이고,
+  // 이 값은 "결과를 어떻게 보여줄까"라는 보기 설정이다.
+  // 그래서 handleRestart에서도 일부러 되돌리지 않는다. (아래 주석 참고)
+  const [isBeginnerMode, setIsBeginnerMode] = useState(false);
+
   // 아래 값들은 state에서 바로 계산할 수 있으므로 state로 만들지 않는다.
   // state가 바뀌면 이 훅을 쓰는 컴포넌트가 다시 실행되면서 자동으로 다시 계산된다.
   const attemptCount = history.length;
@@ -72,6 +77,12 @@ export function useBaseballGame() {
     setGameStatus(decideNextStatus(score.strike, newRecord.attemptNumber));
   }
 
+  function handleToggleBeginnerMode() {
+    setIsBeginnerMode(!isBeginnerMode);
+  }
+
+  // 여기서 setIsBeginnerMode(false)를 부르지 않는 것은 실수가 아니다.
+  // 새 게임을 시작했다고 켜둔 초보 모드가 꺼지면 사용자는 버그라고 느낀다.
   function handleRestart() {
     setAnswer(createAnswer());
     setCurrentGuess([]);
@@ -86,6 +97,7 @@ export function useBaseballGame() {
     currentGuess,
     history,
     gameStatus,
+    isBeginnerMode,
     attemptCount,
     isGuessFull,
     isGameOver,
@@ -94,5 +106,6 @@ export function useBaseballGame() {
     handleClear,
     handleSubmit,
     handleRestart,
+    handleToggleBeginnerMode,
   };
 }
