@@ -1,7 +1,12 @@
 /*
  * 숫자 야구의 진행 상태와 조작 함수를 한곳에 모은 커스텀 훅.
+ * useBaseballGame (유즈 베이스볼 게임) — use=쓰다(훅이라는 표시), baseball=야구
+ *
  * App.jsx가 화면 조립에만 집중할 수 있도록 "게임이 어떻게 돌아가는가"를 이 파일로 옮겼다.
  * 이름이 use로 시작해야 React가 훅으로 인식하고 규칙 검사를 해준다.
+ *
+ * 이 파일의 함수 이름은 대부분 handle~로 시작한다. handle(핸들)은 "처리한다"는 뜻이고,
+ * 사용자가 무언가를 눌렀을 때 실행되는 함수라는 표시다.
  */
 
 import { useState } from 'react';
@@ -55,8 +60,17 @@ export function useBaseballGame() {
    */
   const [pendingNewGame, setPendingNewGame] = useState(null);
 
-  // 아래 값들은 state에서 바로 계산할 수 있으므로 state로 만들지 않는다.
-  // state가 바뀌면 이 훅을 쓰는 컴포넌트가 다시 실행되면서 자동으로 다시 계산된다.
+  /*
+   * 아래 값들은 state에서 바로 계산할 수 있으므로 state로 만들지 않는다.
+   * state가 바뀌면 이 훅을 쓰는 컴포넌트가 다시 실행되면서 자동으로 다시 계산된다.
+   *
+   * 이름 읽는 법:
+   * - attemptCount (어템프트 카운트) — attempt=시도, count=개수 → 몇 번 시도했는가
+   * - isGuessFull (이즈 게스 풀) — guess=추측, full=가득 찬 → 자릿수를 다 채웠는가
+   * - isGameOver (이즈 게임 오버) — game over=게임 끝 → 게임이 끝났는가
+   *
+   * is로 시작하는 이름은 답이 "예/아니오" 둘 중 하나라는 표시다.
+   */
   const attemptCount = history.length;
   const isGuessFull = currentGuess.length === digitCount;
   const isGameOver = gameStatus !== GAME_STATUS.PLAYING;
@@ -82,6 +96,8 @@ export function useBaseballGame() {
 
   /*
    * 같은 숫자를 한 번 더 누르면 넣지 않고 뺀다.
+   * handleDigitToggle (핸들 디짓 토글) — digit=숫자 한 자리, toggle=눌러서 켰다 껐다 하기
+   *
    * 잘못 누른 숫자를 고치려고 "지우기"까지 손을 옮기지 않아도 되게 하려는 것이다.
    */
   function handleDigitToggle(digit) {
@@ -97,10 +113,12 @@ export function useBaseballGame() {
     setCurrentGuess([...currentGuess, digit]);
   }
 
+  // handleBackspace (핸들 백스페이스) — backspace=키보드의 한 글자 지우기 키
   function handleBackspace() {
     setCurrentGuess(currentGuess.slice(0, -1));
   }
 
+  // handleSubmit (핸들 서브밋) — submit=제출하다. "확인" 버튼을 눌렀을 때 하는 일이다.
   function handleSubmit() {
     // 확인 버튼도 막아두지만, 규칙을 지키는 책임은 이 훅에 있다.
     // 화면 쪽 조건이 하나 빠지더라도 같은 조합이 기록에 두 번 들어가지 않게 한다.
@@ -133,6 +151,8 @@ export function useBaseballGame() {
 
   /*
    * 판을 새로 까는 일을 한곳에 모았다.
+   * startNewGame (스타트 뉴 게임) — start=시작하다, new=새로운
+   *
    * 설정을 바꾸는 세 가지와 "다시하기"가 하는 일이 정확히 같기 때문이다.
    * 넷으로 나눠 쓰면 나중에 초기화할 것이 하나 늘었을 때 한 군데를 빠뜨리기 쉽다.
    *
@@ -160,6 +180,10 @@ export function useBaseballGame() {
 
   /*
    * 판을 날리는 조작(다시하기와 설정 셋)이 모두 이 함수를 거친다.
+   * requestNewGame (리퀘스트 뉴 게임) — request=요청하다.
+   * 위의 startNewGame이 "정말로 시작한다"면, 이쪽은 "시작하고 싶다고 말한다"는 뜻이다.
+   * 잃을 기록이 있으면 바로 시작하지 않고 물어보기 때문에 이름을 다르게 지었다.
+   *
    * 잃을 것이 있으면 곧바로 시작하지 않고 확인 창에 물어볼 것을 담아 둔다.
    *
    * 물어볼지 말지를 여기서 한 번만 판단하는 이유:
@@ -175,12 +199,17 @@ export function useBaseballGame() {
   }
 
   // 설정은 그대로 두고 정답만 새로 뽑는다.
+  // handleRestart (핸들 리스타트) — re=다시, start=시작하다
   function handleRestart() {
     requestNewGame(NEW_GAME_REASON.RESTART, { digitCount, isUnlimitedMode, isBeginnerMode });
   }
 
   /*
    * 아래 셋은 규칙을 하나씩만 바꿔서 새 판을 시작한다.
+   * handleChangeDigitCount (핸들 체인지 디짓 카운트) — change=바꾸다, count=개수
+   * handleToggleUnlimitedMode (핸들 토글 언리미티드 모드) — unlimited=무제한의, mode=모드
+   * handleToggleBeginnerMode (핸들 토글 비기너 모드) — beginner=초보자
+   *
    * 나머지 둘을 그대로 넘기는 것이 눈에 보이므로 무엇이 바뀌는지 헷갈리지 않는다.
    *
    * 이미 고른 자릿수를 다시 누른 것은 아무것도 바꾸지 않는 조작이다.
@@ -216,12 +245,15 @@ export function useBaseballGame() {
   }
 
   // 담아둔 설정을 그대로 넘긴다. 무엇을 확인했는지가 그 객체에 다 들어 있다.
+  // handleConfirmNewGame (핸들 컨펌 뉴 게임) — confirm=확인하다, 승낙하다
   function handleConfirmNewGame() {
     startNewGame(pendingNewGame.settings);
   }
 
   /*
    * 취소는 담아둔 것을 버리기만 하면 끝이다.
+   * handleCancelNewGame (핸들 캔슬 뉴 게임) — cancel=취소하다
+   *
    * 체크박스와 난이도 버튼이 state를 그대로 비추는 제어 컴포넌트라,
    * state를 안 바꿨으니 화면도 저절로 원래대로다. 되돌리는 코드가 따로 필요 없다.
    */

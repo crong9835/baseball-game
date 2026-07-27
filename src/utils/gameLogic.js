@@ -15,6 +15,7 @@ import {
 
 /**
  * 0부터 9까지를 순서대로 담은 배열을 만든다.
+ * createAllDigits (크리에이트 올 디짓츠) — create=만들다, all=전부, digit=숫자 한 자리
  * 결과: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
  *
  * 정답을 만들 때뿐 아니라 숫자 버튼 0~9를 그릴 때도 필요해서 export 한다.
@@ -32,6 +33,7 @@ export function createAllDigits() {
 
 /**
  * 배열의 순서를 무작위로 섞은 "새 배열"을 돌려준다.
+ * shuffleArray (셔플 어레이) — shuffle=섞다, array=배열
  *
  * 원본을 직접 바꾸지 않고 복사본을 만드는 이유:
  * 앞으로 React state를 다룰 때와 같은 습관을 들이기 위해서다.
@@ -57,6 +59,7 @@ function shuffleArray(originalList) {
 
 /**
  * 중복 없는 digitCount개의 숫자로 정답을 만든다.
+ * createAnswer (크리에이트 앤서) — create=만들다, answer=정답
  * 예: createAnswer(3) -> [0, 5, 7]
  *
  * 자릿수를 상수로 읽지 않고 인자로 받는 이유:
@@ -79,6 +82,7 @@ export function createAnswer(digitCount) {
 
 /**
  * 입력한 숫자를 한 자리씩 판정한다.
+ * judgeEachDigit (저지 이치 디짓) — judge=판정하다, each=각각, digit=숫자 한 자리
  *
  * 정답도 입력도 중복 숫자가 없기 때문에(입력은 화면에서 중복을 막는다)
  * 한 자리는 스트라이크·볼·아웃 중 정확히 하나에만 해당한다.
@@ -112,6 +116,8 @@ export function judgeEachDigit(answer, guess) {
 
 /**
  * 지금 입력이 예전에 낸 조합과 똑같은지 찾는다.
+ * findDuplicateAttemptNumber (파인드 듀플리케이트 어템프트 넘버)
+ *   — find=찾다, duplicate=중복된, attempt=시도, number=번호
  *
  * 같은 조합을 또 내면 결과가 뻔한데 시도 횟수만 한 번 날아간다.
  * 그래서 확인을 누르기 전에 미리 알려주려고 몇 회에 냈던 조합인지까지 돌려준다.
@@ -136,6 +142,7 @@ export function findDuplicateAttemptNumber(history, guess) {
 
 /**
  * 지금까지의 기록을 훑어서 "0~9 각 숫자에 대해 무엇을 알아냈는가"를 모은다.
+ * collectDigitHints (컬렉트 디짓 힌츠) — collect=모으다, digit=숫자 한 자리, hint=힌트
  *
  * 이것이 초보 모드가 주는 힌트의 알맹이다.
  * 이미 지나간 기록에 색을 칠하는 것만으로는 "다음에 무엇을 누를까"에 도움이 되지 않는다.
@@ -164,6 +171,7 @@ export function collectDigitHints(history) {
 
 /**
  * 사용자가 낸 답을 정답과 비교해 채점한다.
+ * scoreGuess (스코어 게스) — score=점수를 매기다, guess=추측(여기서는 입력한 숫자)
  *
  * 채점만 하고 승패는 판단하지 않는다.
  * 이겼는지 졌는지는 이 결과를 받아서 useBaseballGame의 decideNextStatus가 정한다.
@@ -189,6 +197,7 @@ export function scoreGuess(answer, guess) {
 
 /**
  * 이번 시도 결과로 게임이 어떤 상태가 되는지 정한다.
+ * decideNextStatus (디사이드 넥스트 스테이터스) — decide=정하다, next=다음, status=상태
  *
  * 채점(scoreGuess)과 승패 판단을 나눠둔 것은 그대로다.
  * scoreGuess는 몇 스트라이크인지만 세고, 그래서 이겼는지는 이 함수가 정한다.

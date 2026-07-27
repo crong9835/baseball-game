@@ -1,5 +1,7 @@
 /*
  * 진행 중인 판이 사라지기 전에 한 번 물어보는 확인 창.
+ * ConfirmDialog (컨펌 다이얼로그) — confirm=확인하다, dialog=주고받는 창
+ *
  * 브라우저의 <dialog> 태그를 쓰면 Esc로 닫기, 뒤쪽 요소로 Tab이 새지 않게 가두기,
  * 배경 어둡게(::backdrop)를 직접 만들지 않아도 브라우저가 해준다.
  */
@@ -11,6 +13,7 @@ import styles from './ConfirmDialog.module.css';
 
 /*
  * 무엇 때문에 뜬 창인지를 그대로 질문으로 만든다.
+ * getQuestion (겟 퀘스천) — get=가져오다, question=질문
  *
  * "지금 판을 지우고 새로 시작할까요?"만 물으면 안 되는 이유:
  * 확인을 받기 전에는 state를 바꾸지 않으므로 체크박스가 눌리기 전 모습으로 돌아가 있다.

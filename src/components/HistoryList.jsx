@@ -1,5 +1,7 @@
 /*
  * 지금까지의 시도 기록을 최신순(최근 것이 위)으로 보여주는 컴포넌트.
+ * HistoryList (히스토리 리스트) — history=지나온 기록, list=목록
+ *
  * GuessInput과 마찬가지로 받은 값을 그리기만 하는 표시 전용 컴포넌트다.
  */
 
@@ -8,6 +10,7 @@ import styles from './HistoryList.module.css';
 
 /**
  * 판정 결과를 화면에 쓸 조각들로 바꾼다.
+ * createResultParts (크리에이트 리절트 파츠) — result=결과, part=조각
  * 예: { strike: 1, ball: 1, out: 1 } -> 1스트라이크 / 1볼 / 1아웃
  *
  * 예전에는 "S:1 B:1 OUT:1"처럼 적었지만 야구 규칙을 모르면 읽을 수 없었다.
@@ -39,6 +42,8 @@ function createResultParts(record) {
 
 /**
  * 판정에 맞는 색 클래스 하나를 고른다.
+ * getColorClassName (겟 컬러 클래스 네임) — color=색
+ *
  * 숫자에도 오른쪽 글자에도 같은 색 규칙을 써야 해서 한 곳에 모아뒀다.
  */
 function getColorClassName(digitResult) {
@@ -55,6 +60,7 @@ function getColorClassName(digitResult) {
 
 /**
  * 화면 조각 하나에 붙일 CSS 클래스 이름을 정한다.
+ * getPartClassName (겟 파트 클래스 네임) — part=조각
  *
  * 초보 모드가 꺼져 있으면 색 클래스를 아예 붙이지 않아 전부 같은 검정으로 보인다.
  * (GuessInput의 getSlotClassName과 같은 방식 — 배열에 담았다가 마지막에 합친다)

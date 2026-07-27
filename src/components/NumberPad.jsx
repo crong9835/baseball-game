@@ -1,5 +1,7 @@
 /*
  * 0~9 숫자 버튼과 그 아래 지우기/확인 버튼을 그리는 컴포넌트.
+ * NumberPad (넘버 패드) — number=숫자, pad=버튼이 여러 개 붙은 판
+ *
  * 버튼이 눌려도 스스로 값을 바꾸지 않고, 부모(App)가 준 함수를 호출해서 "눌렸다"고 알리기만 한다.
  * 게임 상태는 App이 갖고 있으므로 실제 처리는 App이 한다.
  */
@@ -14,6 +16,8 @@ const ALL_DIGITS = createAllDigits();
 
 /**
  * 힌트에 맞는 색 클래스 하나를 고른다.
+ * getHintClassName (겟 힌트 클래스 네임) — hint=힌트
+ *
  * 아직 한 번도 써보지 않은 숫자(hint가 undefined)는 아무 색도 주지 않는다.
  */
 function getHintClassName(digitHint) {
@@ -34,6 +38,7 @@ function getHintClassName(digitHint) {
 
 /**
  * 숫자 버튼 하나에 붙일 CSS 클래스 이름을 정한다.
+ * getDigitButtonClassName (겟 디짓 버튼 클래스 네임) — digit=숫자 한 자리
  *
  * 힌트 색과 "지금 골랐다" 표시는 서로를 가리면 안 된다.
  * 그래서 힌트는 배경색으로, 고른 표시는 파란 테두리로 나눠서 둘 다 보이게 한다.
