@@ -1,0 +1,37 @@
+/*
+ * 게임이 끝났을 때 나타나는 배너의 모양.
+ * 게임 중에는 보이지 않다가 갑자기 나타나는 영역이므로,
+ * 테두리를 강조해서 "여기를 보라"는 신호를 준다.
+ */
+
+.resultBanner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-medium);
+
+  padding: var(--space-large) var(--space-medium);
+  text-align: center;
+
+  background: var(--color-surface);
+  border: 2px solid var(--color-primary);
+  border-radius: var(--radius);
+}
+
+.message {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.restartButton {
+  width: 100%;
+  min-height: var(--button-min-size);
+  border: none;
+  border-radius: var(--radius);
+  background: var(--color-primary);
+  color: var(--color-primary-text);
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+}

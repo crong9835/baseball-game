@@ -1,0 +1,75 @@
+/*
+ * 숫자 버튼 10개와 지우기/초기화 버튼의 모양.
+ * 모바일에서 손가락으로 누르는 것을 기준으로 크기를 잡았다.
+ */
+
+.numberPad {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-medium);
+}
+
+/*
+ * 5열 2행으로 배치한다.
+ * flex로 줄바꿈시키는 방법도 있지만, grid는 "5개씩"을 한 줄로 선언할 수 있어 의도가 분명하다.
+ * 1fr은 남는 공간을 똑같이 나눠 가지라는 뜻이라 버튼 폭이 저절로 맞춰진다.
+ */
+.digitGrid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: var(--space-small);
+}
+
+.digitButton {
+  min-height: var(--button-min-size);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+/*
+ * :not(:disabled)를 붙인 이유:
+ * 이게 없으면 이미 눌러서 꺼진 버튼에 마우스를 올려도 "누를 수 있을 것 같은" 강조가 나타난다.
+ */
+.digitButton:hover:not(:disabled) {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.digitButton:disabled {
+  background: var(--color-disabled-bg);
+  color: var(--color-disabled-text);
+  border-color: var(--color-disabled-bg);
+  cursor: not-allowed;
+}
+
+.editRow {
+  display: flex;
+  gap: var(--space-small);
+}
+
+/*
+ * flex: 1은 두 버튼이 남는 가로 공간을 반씩 나눠 갖게 한다.
+ * 글자 수가 달라도(지우기 / 초기화) 버튼 폭은 같아진다.
+ */
+.editButton {
+  flex: 1;
+  min-height: var(--button-min-size);
+  font-size: 16px;
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.editButton:disabled {
+  background: var(--color-disabled-bg);
+  color: var(--color-disabled-text);
+  border-color: var(--color-disabled-bg);
+  cursor: not-allowed;
+}

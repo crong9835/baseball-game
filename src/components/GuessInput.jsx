@@ -5,6 +5,7 @@
  */
 
 import { DIGIT_COUNT } from '../constants/gameConstants.js';
+import styles from './GuessInput.module.css';
 
 // 아직 입력하지 않은 칸에 보여줄 글자
 const EMPTY_SLOT_TEXT = '_';
@@ -28,19 +29,37 @@ function createSlots(currentGuess) {
       text = String(digit);
     }
 
-    slots.push({ position, text });
+    slots.push({ position, text, hasDigit });
   }
 
   return slots;
+}
+
+/**
+ * 칸 하나에 붙일 CSS 클래스 이름을 정한다.
+ *
+ * 채운 칸과 빈 칸의 모양이 달라야 하므로 클래스를 상황에 따라 더 붙인다.
+ * 템플릿 문자열 안에 조건을 넣으면 읽기 어려워지므로, 배열에 담았다가 마지막에 합친다.
+ */
+function getSlotClassName(slot) {
+  const classNames = [styles.slot];
+
+  if (!slot.hasDigit) {
+    classNames.push(styles.emptySlot);
+  }
+
+  return classNames.join(' ');
 }
 
 function GuessInput({ currentGuess }) {
   const slots = createSlots(currentGuess);
 
   return (
-    <div>
+    <div className={styles.guessInput}>
       {slots.map((slot) => (
-        <span key={slot.position}>{slot.text}</span>
+        <span key={slot.position} className={getSlotClassName(slot)}>
+          {slot.text}
+        </span>
       ))}
     </div>
   );

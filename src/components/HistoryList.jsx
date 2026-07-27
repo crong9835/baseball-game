@@ -3,6 +3,8 @@
  * GuessInput과 마찬가지로 받은 값을 그리기만 하는 표시 전용 컴포넌트다.
  */
 
+import styles from './HistoryList.module.css';
+
 /**
  * 판정 결과를 화면에 쓸 글자로 바꾼다.
  * 예: { strike: 1, ball: 1, out: 1 } -> "S:1 B:1 OUT:1"
@@ -19,16 +21,16 @@ function HistoryList({ history }) {
   // 기록이 없을 때 빈 목록을 그리면 화면이 허전하고 무엇을 해야 할지 알기 어렵다.
   // 조건을 중첩 삼항연산자로 처리하지 않고, 여기서 일찍 return 해서 흐름을 단순하게 만든다.
   if (hasNoHistory) {
-    return <p>아직 시도한 기록이 없습니다.</p>;
+    return <p className={styles.emptyMessage}>아직 시도한 기록이 없습니다.</p>;
   }
 
   return (
-    <ul>
+    <ul className={styles.historyList}>
       {history.map((record) => (
-        <li key={record.attemptNumber}>
-          <span>{record.attemptNumber}회</span>
-          <span>{record.guess.join(' ')}</span>
-          <span>{formatResult(record)}</span>
+        <li key={record.attemptNumber} className={styles.historyItem}>
+          <span className={styles.attemptNumber}>{record.attemptNumber}회</span>
+          <span className={styles.guess}>{record.guess.join(' ')}</span>
+          <span className={styles.result}>{formatResult(record)}</span>
         </li>
       ))}
     </ul>

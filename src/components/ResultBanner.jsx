@@ -4,6 +4,7 @@
  */
 
 import { GAME_STATUS } from '../constants/gameConstants.js';
+import styles from './ResultBanner.module.css';
 
 function ResultBanner({ gameStatus, answer, onRestart }) {
   const isPlaying = gameStatus === GAME_STATUS.PLAYING;
@@ -25,9 +26,9 @@ function ResultBanner({ gameStatus, answer, onRestart }) {
   }
 
   return (
-    <div>
-      <p>{message}</p>
-      <button type="button" onClick={onRestart}>
+    <div className={styles.resultBanner}>
+      <p className={styles.message}>{message}</p>
+      <button type="button" className={styles.restartButton} onClick={onRestart}>
         다시 시작
       </button>
     </div>

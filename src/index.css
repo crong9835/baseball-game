@@ -22,6 +22,22 @@
 
   --font-sans: system-ui, 'Segoe UI', 'Malgun Gothic', sans-serif;
 
+  /*
+   * 간격도 색상과 같은 이유로 이름을 붙여둔다.
+   * 8px, 16px 같은 숫자를 각 파일에 흩어 놓으면 나중에 "전체적으로 좀 더 넓게"가 어려워진다.
+   */
+  --space-small: 8px;
+  --space-medium: 16px;
+  --space-large: 24px;
+
+  --radius: 8px;
+
+  /*
+   * 손가락으로 누르는 버튼은 48px 이상이어야 편하다는 것이 모바일 접근성 권장 기준이다.
+   * 숫자 버튼과 조작 버튼이 모두 이 값을 쓰므로 변수로 뺐다.
+   */
+  --button-min-size: 48px;
+
   font-family: var(--font-sans);
   color: var(--color-text);
   background: var(--color-background);

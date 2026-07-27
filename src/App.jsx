@@ -12,6 +12,7 @@ import GuessInput from './components/GuessInput.jsx';
 import NumberPad from './components/NumberPad.jsx';
 import ResultBanner from './components/ResultBanner.jsx';
 import HistoryList from './components/HistoryList.jsx';
+import styles from './App.module.css';
 
 /**
  * 이번 시도 결과로 게임이 어떤 상태가 되는지 정한다.
@@ -84,11 +85,13 @@ function App() {
   }
 
   return (
-    <main>
-      <h1>숫자 야구</h1>
-      <p>
-        {attemptCount} / {MAX_ATTEMPTS}
-      </p>
+    <main className={styles.app}>
+      <header className={styles.header}>
+        <h1 className={styles.title}>숫자 야구</h1>
+        <p className={styles.attemptCount}>
+          {attemptCount} / {MAX_ATTEMPTS}
+        </p>
+      </header>
 
       <GuessInput currentGuess={currentGuess} />
 
@@ -102,6 +105,7 @@ function App() {
 
       <button
         type="button"
+        className={styles.submitButton}
         disabled={!isGuessFull || isGameOver}
         onClick={handleSubmit}
       >

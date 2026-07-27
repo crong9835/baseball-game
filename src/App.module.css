@@ -1,0 +1,69 @@
+/*
+ * App 컴포넌트의 전체 배치와 "확인" 버튼 스타일.
+ * 각 화면 조각의 내부 모양은 컴포넌트별 module.css가 담당하고,
+ * 여기서는 조각들을 세로로 어떻게 늘어놓을지만 정한다.
+ */
+
+.app {
+  /*
+   * 모바일 우선으로 만들되, 넓은 화면에서 글자가 좌우로 너무 벌어지지 않도록 폭을 제한한다.
+   * margin: 0 auto가 남는 공간을 좌우로 나눠 가운데 정렬해 준다.
+   */
+  max-width: 480px;
+  margin: 0 auto;
+  padding: var(--space-large) var(--space-medium);
+
+  /*
+   * 세로로 쌓이는 요소들의 간격을 gap 하나로 관리한다.
+   * 각 조각에 margin을 주면 "누구의 여백인지" 헷갈리고 margin이 겹치는 문제도 생긴다.
+   */
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-large);
+}
+
+.header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-medium);
+}
+
+.title {
+  margin: 0;
+  font-size: 24px;
+}
+
+.attemptCount {
+  margin: 0;
+  font-size: 16px;
+  color: var(--color-text-muted);
+
+  /*
+   * 숫자 글꼴 폭을 고정한다.
+   * 이게 없으면 9 / 10에서 10 / 10으로 바뀔 때 글자 폭이 달라 화면이 미세하게 흔들린다.
+   */
+  font-variant-numeric: tabular-nums;
+}
+
+.submitButton {
+  width: 100%;
+  min-height: var(--button-min-size);
+  border: none;
+  border-radius: var(--radius);
+  background: var(--color-primary);
+  color: var(--color-primary-text);
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/*
+ * 3자리를 다 채우기 전에는 누를 수 없다는 것이 눈으로도 보여야 한다.
+ * 색만 흐리게 하지 않고 커서 모양까지 바꿔서 "지금은 안 된다"를 분명히 알린다.
+ */
+.submitButton:disabled {
+  background: var(--color-disabled-bg);
+  color: var(--color-disabled-text);
+  cursor: not-allowed;
+}
