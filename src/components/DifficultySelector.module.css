@@ -23,9 +23,27 @@
   cursor: pointer;
 }
 
-.option:hover {
+/*
+ * :not(:disabled)를 붙인 이유:
+ * 이게 없으면 잠겨서 못 누르는 버튼에 마우스를 올려도 누를 수 있을 것처럼 강조된다.
+ * (NumberPad의 .digitButton:hover:not(:disabled)와 같은 이유다)
+ */
+.option:hover:not(:disabled) {
   border-color: var(--color-primary);
   color: var(--color-primary);
+}
+
+/*
+ * 친구가 낸 문제를 푸는 동안 잠긴 모양.
+ *
+ * 배경색을 회색으로 덮지 않고 opacity로 흐리는 이유:
+ * 지금 고른 난이도의 파란 테두리(.selectedOption)가 그대로 보여야
+ * "몇 자리 문제를 풀고 있는지"를 잠긴 상태에서도 읽을 수 있다.
+ * 회색으로 덮어버리면 셋 다 똑같아 보여서 그 정보가 사라진다.
+ */
+.option:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /*

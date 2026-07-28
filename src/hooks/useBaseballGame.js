@@ -20,6 +20,51 @@ import {
   findDuplicateAttemptNumber,
   decideNextStatus,
 } from '../utils/gameLogic.js';
+import { readPuzzleFromLink, removePuzzleFromLink } from '../utils/puzzleLink.js';
+
+/**
+ * 앱을 처음 켤 때 어떤 판으로 시작할지 정한다.
+ * createInitialGame (크리에이트 이니셜 게임) — create=만들다, initial=처음의
+ *
+ * 주소에 친구가 보낸 문제가 담겨 있으면 그 문제로, 아니면 평소대로 무작위 판으로 시작한다.
+ *
+ * 이 함수를 훅 안이 아니라 파일 맨 위에서 부르는 이유:
+ * 주소는 앱을 켤 때 한 번만 읽으면 되는데, 훅 안에 두면 화면이 다시 그려질 때마다 실행된다.
+ * 파일 맨 위의 줄은 파일을 읽어들일 때 딱 한 번만 실행된다.
+ *
+ * useEffect를 쓰지 않는 이유도 같다. useEffect는 "state가 바뀔 때마다 바깥 세상과 계속 맞추는"
+ * 훅인데, 이건 시작할 때 한 번 읽고 끝나는 일이라 맞출 것이 없다.
+ */
+function createInitialGame() {
+  const sharedPuzzle = readPuzzleFromLink();
+
+  if (sharedPuzzle === null) {
+    return {
+      digitCount: DEFAULT_DIGIT_COUNT,
+      isUnlimitedMode: false,
+      isBeginnerMode: false,
+      answer: createAnswer(DEFAULT_DIGIT_COUNT),
+      isSharedPuzzle: false,
+    };
+  }
+
+  /*
+   * 문제를 읽었으면 곧바로 주소창에서 지운다.
+   * 게임하는 내내 주소창에 정답의 흔적이 없어야 무심코 봤다가 힌트를 얻는 일이 없다.
+   */
+  removePuzzleFromLink();
+
+  return {
+    // 자릿수는 링크에 따로 담겨 있지 않다. 정답이 몇 자리인지가 곧 자릿수다.
+    digitCount: sharedPuzzle.answer.length,
+    isUnlimitedMode: sharedPuzzle.isUnlimitedMode,
+    isBeginnerMode: sharedPuzzle.isBeginnerMode,
+    answer: sharedPuzzle.answer,
+    isSharedPuzzle: true,
+  };
+}
+
+const INITIAL_GAME = createInitialGame();
 
 export function useBaseballGame() {
   /*
@@ -30,15 +75,23 @@ export function useBaseballGame() {
    * 나중에 순위를 매기는 기능을 붙일 때, 힌트를 보며 절반을 풀고 중간에 끈 판이
    * "힌트 없이 6회"로 남으면 그건 기록이 아니라 구멍이다.
    */
-  const [digitCount, setDigitCount] = useState(DEFAULT_DIGIT_COUNT);
-  const [isUnlimitedMode, setIsUnlimitedMode] = useState(false);
-  const [isBeginnerMode, setIsBeginnerMode] = useState(false);
+  const [digitCount, setDigitCount] = useState(INITIAL_GAME.digitCount);
+  const [isUnlimitedMode, setIsUnlimitedMode] = useState(INITIAL_GAME.isUnlimitedMode);
+  const [isBeginnerMode, setIsBeginnerMode] = useState(INITIAL_GAME.isBeginnerMode);
 
-  // createAnswer를 그대로 부르지 않고 함수로 감싼 이유:
-  // 화면이 다시 그려질 때마다 정답을 새로 만들어 버리는 낭비를 막기 위해서다.
-  // 여기서 digitCount 대신 DEFAULT_DIGIT_COUNT를 쓰는 것은, 이 줄이 딱 한 번만
-  // 실행되는 "맨 처음 값"이라서다. 처음에는 둘이 같은 값이고, 상수를 쓰는 편이 읽기 쉽다.
-  const [answer, setAnswer] = useState(() => createAnswer(DEFAULT_DIGIT_COUNT));
+  /*
+   * 지금 푸는 것이 친구가 링크로 보낸 문제인가.
+   *
+   * 이 값은 계산해 낼 수가 없다. answer만 봐서는 그것이 무작위로 뽑힌 것인지
+   * 친구가 골라준 것인지 구분할 방법이 없기 때문이다. 그래서 state로 둔다.
+   *
+   * 위의 규칙 셋과 같은 갈래다. 바뀌는 순간 새 판이 시작된다.
+   */
+  const [isSharedPuzzle, setIsSharedPuzzle] = useState(INITIAL_GAME.isSharedPuzzle);
+
+  // 처음 정답은 위의 INITIAL_GAME이 이미 정해두었다(받은 문제면 그 정답, 아니면 무작위).
+  // 그 값은 파일을 읽을 때 한 번만 만들어지므로 여기서 다시 만들 일이 없다.
+  const [answer, setAnswer] = useState(INITIAL_GAME.answer);
   const [currentGuess, setCurrentGuess] = useState([]);
   const [history, setHistory] = useState([]);
   const [gameStatus, setGameStatus] = useState(GAME_STATUS.PLAYING);
@@ -162,12 +215,23 @@ export function useBaseballGame() {
    *
    * setDigitCount는 즉시 반영되지 않으므로, 방금 정한 값을 createAnswer에 직접 넘긴다.
    * digitCount를 읽으면 아직 바뀌기 전 자릿수라 정답 길이가 어긋난다.
+   *
+   * nextSettings.sharedAnswer는 "친구가 골라준 정답"이다. 평소 판에서는 null이고,
+   * 그때만 정답을 새로 뽑는다. 받은 문제도 이 함수를 거치게 한 이유는 앞과 같다.
+   * 판을 까는 길이 둘이 되면 나중에 초기화할 것이 하나 늘었을 때 한쪽을 빠뜨린다.
    */
   function startNewGame(nextSettings) {
+    // 받은 정답이 있으면 그것을 쓰고, 없을 때만 새로 뽑는다.
+    let nextAnswer = nextSettings.sharedAnswer;
+    if (nextAnswer === null) {
+      nextAnswer = createAnswer(nextSettings.digitCount);
+    }
+
     setDigitCount(nextSettings.digitCount);
     setIsUnlimitedMode(nextSettings.isUnlimitedMode);
     setIsBeginnerMode(nextSettings.isBeginnerMode);
-    setAnswer(createAnswer(nextSettings.digitCount));
+    setAnswer(nextAnswer);
+    setIsSharedPuzzle(nextSettings.sharedAnswer !== null);
     setCurrentGuess([]);
     setHistory([]);
     setGameStatus(GAME_STATUS.PLAYING);
@@ -198,10 +262,29 @@ export function useBaseballGame() {
     startNewGame(nextSettings);
   }
 
-  // 설정은 그대로 두고 정답만 새로 뽑는다.
-  // handleRestart (핸들 리스타트) — re=다시, start=시작하다
+  /*
+   * 설정은 그대로 두고 정답만 새로 뽑는다.
+   * handleRestart (핸들 리스타트) — re=다시, start=시작하다
+   *
+   * 받은 문제를 푸는 중에도 이 함수를 그대로 쓴다. 하는 일이 정확히 같기 때문이다.
+   * 정답을 새로 뽑으면(sharedAnswer가 null이므로) 그 순간 받은 문제에서 벗어나 평소 판이 된다.
+   * 같은 정답으로 다시 시작하는 선택지는 두지 않았다. 답을 이미 알거나 봤을 텐데
+   * 같은 문제를 다시 까는 것은 기록만 날리는 일이기 때문이다.
+   *
+   * 다른 것은 확인 창에 물어볼 말뿐이라, 그것만 골라서 넘긴다.
+   */
   function handleRestart() {
-    requestNewGame(NEW_GAME_REASON.RESTART, { digitCount, isUnlimitedMode, isBeginnerMode });
+    let reason = NEW_GAME_REASON.RESTART;
+    if (isSharedPuzzle) {
+      reason = NEW_GAME_REASON.LEAVE_SHARED_PUZZLE;
+    }
+
+    requestNewGame(reason, {
+      digitCount,
+      isUnlimitedMode,
+      isBeginnerMode,
+      sharedAnswer: null,
+    });
   }
 
   /*
@@ -215,8 +298,17 @@ export function useBaseballGame() {
    * 이미 고른 자릿수를 다시 누른 것은 아무것도 바꾸지 않는 조작이다.
    * 그냥 두면 "기록이 사라집니다"를 묻는 창이 뜨고, 그 말을 "3자리로 하겠다"는 뜻으로
    * 읽은 사람이 확인을 누르면 바뀐 것도 없이 판만 날아간다.
+   *
+   * 셋 다 맨 위에서 isSharedPuzzle을 확인하고 그냥 돌아간다.
+   * 친구가 정한 조건은 그 문제의 일부라서 푸는 사람이 바꾸면 안 되기 때문이다.
+   * 화면에서도 버튼과 체크박스를 못 누르게 막지만, 규칙을 지키는 책임은 이 훅에 있다.
+   * 화면 쪽 조건이 하나 빠지더라도 받은 문제가 도중에 뒤바뀌지 않아야 한다.
    */
   function handleChangeDigitCount(nextDigitCount) {
+    if (isSharedPuzzle) {
+      return;
+    }
+
     if (nextDigitCount === digitCount) {
       return;
     }
@@ -225,22 +317,33 @@ export function useBaseballGame() {
       digitCount: nextDigitCount,
       isUnlimitedMode,
       isBeginnerMode,
+      sharedAnswer: null,
     });
   }
 
   function handleToggleUnlimitedMode() {
+    if (isSharedPuzzle) {
+      return;
+    }
+
     requestNewGame(NEW_GAME_REASON.UNLIMITED_MODE, {
       digitCount,
       isUnlimitedMode: !isUnlimitedMode,
       isBeginnerMode,
+      sharedAnswer: null,
     });
   }
 
   function handleToggleBeginnerMode() {
+    if (isSharedPuzzle) {
+      return;
+    }
+
     requestNewGame(NEW_GAME_REASON.BEGINNER_MODE, {
       digitCount,
       isUnlimitedMode,
       isBeginnerMode: !isBeginnerMode,
+      sharedAnswer: null,
     });
   }
 
@@ -271,6 +374,7 @@ export function useBaseballGame() {
     gameStatus,
     isUnlimitedMode,
     isBeginnerMode,
+    isSharedPuzzle,
     attemptCount,
     isGuessFull,
     isGameOver,

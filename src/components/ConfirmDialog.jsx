@@ -43,6 +43,14 @@ function getQuestion(pendingNewGame) {
     return '무제한 기회를 끌까요?';
   }
 
+  /*
+   * 받은 문제에서는 "새 판을 시작할까요?"라고 물으면 안 된다.
+   * 같은 문제를 처음부터 다시 푸는 줄로 읽히는데, 실제로는 그 문제에서 아주 나가는 조작이다.
+   */
+  if (reason === NEW_GAME_REASON.LEAVE_SHARED_PUZZLE) {
+    return '친구가 낸 문제를 그만둘까요?';
+  }
+
   // 남은 하나는 '다시하기'다. 바뀌는 설정이 없으므로 판을 새로 깐다는 말만 하면 된다.
   return '새 판을 시작할까요?';
 }

@@ -26,6 +26,7 @@ function App() {
     gameStatus,
     isUnlimitedMode,
     isBeginnerMode,
+    isSharedPuzzle,
     attemptCount,
     isGuessFull,
     isGameOver,
@@ -52,6 +53,19 @@ function App() {
     attemptText = `${attemptCount}회`;
   }
 
+  /*
+   * 받은 문제에서는 이 버튼이 "그 문제를 그만두고 평소 게임으로 나가는" 일을 한다.
+   * 하는 일이 달라졌으니 글자도 달라야 한다. "다시하기"라고 적혀 있으면
+   * 같은 문제를 처음부터 다시 푸는 줄 알고 누르게 된다.
+   *
+   * 부르는 함수는 그대로 handleRestart 하나다. 훅 안에서 알아서 갈라진다.
+   * 위의 attemptText와 같은 방식으로, 기본값을 먼저 정하고 조건에 맞으면 덮어쓴다.
+   */
+  let restartLabel = '다시하기';
+  if (isSharedPuzzle) {
+    restartLabel = '평소 게임으로';
+  }
+
   return (
     <main className={styles.app}>
       <header className={styles.header}>
@@ -60,11 +74,30 @@ function App() {
       </header>
 
       {/*
+        친구가 링크로 보낸 문제를 푸는 중일 때만 나타나는 안내.
+
+        &&는 왼쪽이 참일 때만 오른쪽을 그린다는 뜻이다. 거짓이면 아무것도 그리지 않는다.
+        (NumberPad의 중복 안내 문구와 같은 방식이다)
+
+        설정 버튼들이 왜 안 눌리는지를 여기서 말해줘야 한다.
+        이유 없이 회색으로 잠겨 있으면 고장 난 화면으로 보인다.
+      */}
+      {isSharedPuzzle && (
+        <p className={styles.sharedPuzzleNotice}>
+          친구가 낸 문제입니다 · 조건은 낸 사람이 정했습니다
+        </p>
+      )}
+
+      {/*
         난이도는 판을 시작하기 전에 고르는 것이라 맨 위에 둔다.
         누르면 새 판이 시작된다(정답·기록·입력이 모두 초기화된다).
         단, 잃을 기록이 있으면 곧바로 시작하지 않고 아래 ConfirmDialog가 먼저 물어본다.
       */}
-      <DifficultySelector digitCount={digitCount} onSelect={handleChangeDigitCount} />
+      <DifficultySelector
+        digitCount={digitCount}
+        isLocked={isSharedPuzzle}
+        onSelect={handleChangeDigitCount}
+      />
 
       <GuessInput currentGuess={currentGuess} digitCount={digitCount} />
 
@@ -86,7 +119,7 @@ function App() {
         게임이 끝나기 전에도 언제든 새 판을 시작할 수 있어야 하므로 항상 보여준다.
       */}
       <button type="button" className={styles.restartButton} onClick={handleRestart}>
-        다시하기
+        {restartLabel}
       </button>
 
       <ResultBanner gameStatus={gameStatus} answer={answer} />
@@ -104,12 +137,14 @@ function App() {
           label="초보 모드"
           description="알아낸 숫자를 버튼에 색으로 · 바꾸면 새 판"
           isOn={isBeginnerMode}
+          isLocked={isSharedPuzzle}
           onToggle={handleToggleBeginnerMode}
         />
         <SettingToggle
           label="무제한 기회"
           description="맞힐 때까지 시도 · 바꾸면 새 판"
           isOn={isUnlimitedMode}
+          isLocked={isSharedPuzzle}
           onToggle={handleToggleUnlimitedMode}
         />
         <HistoryList history={history} isBeginnerMode={isBeginnerMode} />

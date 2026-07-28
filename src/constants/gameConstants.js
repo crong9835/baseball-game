@@ -48,6 +48,13 @@ export const NEW_GAME_REASON = {
   DIGIT_COUNT: 'digitCount',
   UNLIMITED_MODE: 'unlimitedMode',
   BEGINNER_MODE: 'beginnerMode',
+
+  /*
+   * 친구가 낸 문제를 그만두고 평소 게임으로 돌아가는 경우.
+   * 하는 일은 RESTART와 똑같이 "정답을 새로 뽑아 새 판"이지만 물어볼 말이 다르다.
+   * 받은 문제에서 "새 판을 시작할까요?"라고 물으면 같은 문제를 다시 푸는 줄로 읽힌다.
+   */
+  LEAVE_SHARED_PUZZLE: 'leaveSharedPuzzle',
 };
 
 /*

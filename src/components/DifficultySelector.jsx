@@ -26,7 +26,13 @@ function getOptionClassName(isSelected) {
   return classNames.join(' ');
 }
 
-function DifficultySelector({ digitCount, onSelect }) {
+/*
+ * isLocked (이즈 락트) — lock=잠그다 → 지금 잠겨서 못 바꾸는가
+ *
+ * 친구가 링크로 보낸 문제를 푸는 중에는 true다. 자릿수는 그 문제의 조건이라
+ * 푸는 사람이 도중에 바꾸면 안 되기 때문이다.
+ */
+function DifficultySelector({ digitCount, isLocked, onSelect }) {
   return (
     <div className={styles.difficultySelector}>
       {DIGIT_COUNT_OPTIONS.map((option) => {
@@ -37,6 +43,7 @@ function DifficultySelector({ digitCount, onSelect }) {
             key={option}
             type="button"
             className={getOptionClassName(isSelected)}
+            disabled={isLocked}
             /*
              * aria-pressed는 화면을 읽어주는 프로그램에 "이 버튼이 눌린 상태"라고 알려준다.
              * 색과 테두리만으로 표시하면 눈으로 볼 때만 구분되기 때문이다.
