@@ -18,46 +18,60 @@ npm run build    # 프로덕션 빌드
 npm run preview  # 빌드 결과 미리보기
 ```
 
-**테스트 프레임워크는 의도적으로 도입하지 않았습니다.** `src/utils/gameLogic.js`는 React에 의존하지 않는 순수 함수라서, 검증이 필요하면 임시 `.mjs` 스크립트에서 `import` 해 `node`로 직접 실행하고 결과를 확인한 뒤 스크립트는 커밋하지 않습니다. (`package.json`에 `"type": "module"`이 있어 `import` 구문이 그대로 동작합니다)
+**테스트 프레임워크는 의도적으로 도입하지 않았습니다.** `src/utils/gameLogic.js`와 `src/utils/puzzleLink.js`의 순수 함수 부분은 React에 의존하지 않아서, 검증이 필요하면 임시 `.mjs` 스크립트에서 `import` 해 `node`로 직접 실행하고 결과를 확인한 뒤 스크립트는 커밋하지 않습니다. (`package.json`에 `"type": "module"`이 있어 `import` 구문이 그대로 동작합니다)
 
-판정·힌트처럼 규칙이 걸린 것을 고쳤다면 화면만 보고 넘어가지 말고 이 방식으로 한 번 돌려보세요. 경계 경우(같은 숫자가 볼이었다가 스트라이크가 되는 등)는 화면에서 재현하기 번거롭습니다.
+판정·힌트·링크처럼 규칙이 걸린 것을 고쳤다면 화면만 보고 넘어가지 말고 이 방식으로 한 번 돌려보세요. 경계 경우는 화면에서 재현하기 번거롭습니다. 같은 숫자가 볼이었다가 스트라이크가 되는 경우, 정답에 0이 들어간 링크, 카톡에서 잘린 링크 같은 것들입니다.
+
+`puzzleLink.js`에서 **브라우저 주소(`window`)를 만지는 함수는 파일 아래쪽에 몰아두었습니다.** node에는 `window`가 없어서, 위쪽 순수 함수만 부르면 그대로 검증됩니다. 이 경계를 흐트러뜨리지 마세요.
 
 ## 아키텍처
 
 의존 방향은 **한 방향**입니다. 역방향 import(예: `gameLogic.js`가 `App.jsx`를 참조)를 만들지 마세요.
 
 ```
-main.jsx → App.jsx → components/*.jsx
-                  ↘  hooks/useBaseballGame.js → utils/gameLogic.js
-                                              ↘  constants/gameConstants.js
+main.jsx → App.jsx ┬→ components/*.jsx
+                   │
+                   ├→ hooks/useBaseballGame.js   ┐   → utils/gameLogic.js
+                   └→ hooks/usePuzzleComposer.js ┴─  → utils/puzzleLink.js
+                                                     → constants/gameConstants.js
 ```
 
 | 위치 | 역할 |
 |---|---|
 | `src/constants/gameConstants.js` | **값만.** 함수 없음. `DIGIT_COUNT_OPTIONS`, `DEFAULT_DIGIT_COUNT`, `MAX_ATTEMPTS`, `MIN_DIGIT`, `MAX_DIGIT`, `GAME_STATUS`, `NEW_GAME_REASON`, `DIGIT_RESULT` |
-| `src/utils/gameLogic.js` | **React와 무관한 순수 함수.** `createAllDigits()`, `createAnswer(digitCount)`, `judgeEachDigit()`, `findDuplicateAttemptNumber()`, `collectDigitHints()`, `scoreGuess()`, `decideNextStatus()` |
+| `src/utils/gameLogic.js` | **React와 무관한 순수 함수.** `createAllDigits()`, `createAnswer(digitCount)`, `toggleDigit()`, `isPlayableAnswer()`, `judgeEachDigit()`, `findDuplicateAttemptNumber()`, `collectDigitHints()`, `scoreGuess()`, `decideNextStatus()` |
+| `src/utils/puzzleLink.js` | 문제 ↔ 링크 글자 변환. 위쪽은 순수 함수, 아래쪽은 브라우저 주소를 만지는 함수 |
 | `src/hooks/useBaseballGame.js` | **게임 진행 상태 전부.** state, 파생값, 조작 함수 |
+| `src/hooks/usePuzzleComposer.js` | **문제 내는 화면의 상태 전부.** 게임과 상관없음 |
 | `src/components/*.jsx` | 화면 조각. 각 파일은 같은 이름의 `*.module.css`와 짝을 이룸 |
 | `src/App.jsx` | 훅에서 받은 값을 화면 조각에 배분하기만 함. **여기에 state를 두지 마세요** |
 
-컴포넌트는 `DifficultySelector`, `GuessInput`, `NumberPad`, `SettingToggle`, `ResultBanner`, `HistoryList`, `ConfirmDialog` 일곱 개입니다.
+컴포넌트는 `DifficultySelector`, `GuessInput`, `NumberPad`, `SettingToggle`, `ResultBanner`, `HistoryList`, `ConfirmDialog`, `PuzzleComposer` 여덟 개입니다.
 
-`SettingToggle`만 **같은 컴포넌트를 두 번 씁니다**(초보 모드, 무제한 기회). 생김새와 동작이 똑같고 글자만 달라서, 파일을 복사해 두는 대신 `label`·`description`을 props로 받게 했습니다. 설정이 하나 더 늘어도 `App.jsx`에 다섯 줄만 추가하면 됩니다.
+`DifficultySelector`, `GuessInput`, `NumberPad`, `SettingToggle` 넷은 **게임 화면과 문제 내는 화면이 같이 씁니다.** 그래서 이 넷에 "지금이 게임인가 출제인가"를 묻는 조건을 넣지 마세요. 다른 점은 props로 받습니다(`isLocked`, `submitLabel`).
+
+`SettingToggle`은 **한 화면에서 두 번씩 씁니다**(초보 모드, 무제한 기회). 생김새와 동작이 똑같고 글자만 달라서, 파일을 복사해 두는 대신 `label`·`description`을 props로 받게 했습니다. 설정이 하나 더 늘어도 다섯 줄만 추가하면 됩니다.
+
+같은 설정이라도 **글자는 화면마다 다릅니다.** 게임 화면은 `맞힐 때까지 시도 · 바꾸면 새 판`이고 출제 화면은 `친구가 맞힐 때까지 끝나지 않습니다`입니다. 출제 화면에는 `· 바꾸면 새 판`을 적지 않았습니다 — 아직 시작하지도 않은 판이라 실제로 지워지는 것이 없기 때문입니다.
 
 **자릿수는 `gameLogic.js`가 스스로 알지 못합니다.** 자릿수를 쓰는 함수는 인자로 받고(`createAnswer(digitCount)`), 나머지는 넘겨받은 배열의 길이대로 돕니다. 난이도가 3·4·5로 달라져도 이 파일이 고쳐지지 않는 이유입니다.
 
 ### state 소유 규칙
 
-**모든 state는 `useBaseballGame` 훅이 소유합니다.** App도 자식 컴포넌트도 `useState`를 갖지 않습니다.
+**모든 state는 훅이 소유합니다.** App도 자식 컴포넌트도 `useState`를 갖지 않습니다.
 같은 값을 여러 컴포넌트가 봐야 하기 때문입니다(예: `currentGuess`는 `GuessInput`이 표시하고 `NumberPad`가 버튼 비활성화에 사용).
 
-훅이 가진 state는 8개뿐이고, 세 갈래로 나뉩니다:
+> 예전에는 "모든 state는 `useBaseballGame`이 소유한다"였습니다. **2026년 7월에 훅이 둘이 됐습니다.** `usePuzzleComposer`가 생겼기 때문입니다. 소유자가 훅이라는 것은 그대로고, 어느 훅인지만 갈렸습니다.
 
-- **게임 규칙** — `digitCount`, `isUnlimitedMode`, `isBeginnerMode`
+`useBaseballGame`이 가진 state는 9개고, 세 갈래로 나뉩니다:
+
+- **게임 규칙** — `digitCount`, `isUnlimitedMode`, `isBeginnerMode`, `isSharedPuzzle`
 - **게임 진행** — `answer`, `currentGuess`, `history`, `gameStatus`
 - **확인 대기** — `pendingNewGame`
 
-**규칙 셋은 바뀌는 순간 새 판이 시작됩니다. 예외는 없습니다.** 판 중간에 규칙이 바뀌면 앞의 기록과 뒤의 기록이 서로 다른 조건으로 쌓이기 때문입니다.
+**규칙 넷은 바뀌는 순간 새 판이 시작됩니다. 예외는 없습니다.** 판 중간에 규칙이 바뀌면 앞의 기록과 뒤의 기록이 서로 다른 조건으로 쌓이기 때문입니다.
+
+`isSharedPuzzle`(친구가 링크로 보낸 문제를 푸는 중인가)만 계산으로 만들 수 없어 state입니다. **`answer`만 봐서는 그것이 무작위로 뽑힌 것인지 친구가 골라준 것인지 알 방법이 없습니다.**
 
 > 초보 모드는 예전에 '보기 설정'으로 보고 판을 건드리지 않았습니다. **2026년 7월에 바꿨습니다.** 나중에 순위를 매기는 기능을 붙이려면 한 판이 처음부터 끝까지 같은 조건이어야 하는데, 힌트를 보며 절반을 풀고 중간에 끈 판이 "힌트 없이 6회"로 남으면 그건 기록이 아니라 구멍이기 때문입니다. 되돌리지 마세요.
 
@@ -73,9 +87,12 @@ const isGuessFull = currentGuess.length === digitCount;
 const isGameOver = gameStatus !== GAME_STATUS.PLAYING;
 const digitHints = collectDigitHints(history);                          // 키패드 힌트
 const duplicateAttemptNumber = findDuplicateAttemptNumber(history, currentGuess);
+const puzzleLink = createPuzzleLink({ answer: pickedAnswer, ... });     // 출제 화면
 ```
 
 `digitHints`를 state로 만들면 "기록은 늘었는데 힌트는 그대로"인 버그가 바로 생깁니다. 진짜 값은 `history` 하나뿐입니다.
+
+`puzzleLink`도 마찬가지입니다. state로 두면 정답을 고쳤는데 화면에는 옛 링크가 남아, **친구에게 엉뚱한 문제를 보내게 됩니다.**
 
 ### `useEffect`를 쓰는 기준
 
@@ -119,17 +136,26 @@ const duplicateAttemptNumber = findDuplicateAttemptNumber(history, currentGuess)
 
 ```js
 function handleToggleUnlimitedMode() {
-  startNewGame({ digitCount, isUnlimitedMode: !isUnlimitedMode, isBeginnerMode });
+  requestNewGame(NEW_GAME_REASON.UNLIMITED_MODE, {
+    digitCount,
+    isUnlimitedMode: !isUnlimitedMode,
+    isBeginnerMode,
+    sharedAnswer: null,   // 무작위로 새로 뽑으라는 뜻
+  });
 }
 ```
 
 **값을 하나씩 나열하지 않고 객체로 받습니다.** `startNewGame(3, false, true)`라고 쓰면 두 번째 `false`가 무엇인지 알 수 없습니다. 부르는 쪽에서 이름이 보여야 무엇이 바뀌는 조작인지 한눈에 읽힙니다.
+
+`sharedAnswer`는 "친구가 골라준 정답"입니다. `null`이면 그때만 `createAnswer()`로 새로 뽑습니다. 링크로 받은 문제도 이 함수를 거칩니다 — **판을 까는 길이 둘이 되면 나중에 초기화할 것이 하나 늘었을 때 한쪽을 빠뜨립니다.**
 
 체크박스 설명에 `· 바꾸면 새 판`을 적어둔 것도 같은 이유입니다. 눌렀을 때 판이 사라지는데 글자에 안 적혀 있으면 눌러보고 나서야 알게 됩니다.
 
 #### 새 판 확인 창 (`ConfirmDialog`)
 
 판을 날리는 조작은 넷입니다 — 난이도 변경, 초보 모드 토글, 무제한 기회 토글, 다시하기. 넷 다 **`requestNewGame(reason, nextSettings)`을 거칩니다.** 물어볼지 말지를 한 곳에서만 판단해야 나중에 조작이 하나 늘었을 때 빠뜨리지 않습니다.
+
+받은 문제를 푸는 중에는 앞의 셋이 잠기므로 **실제로는 다시하기 하나**입니다. 그때는 같은 함수가 `LEAVE_SHARED_PUZZLE` 이유를 달고 "친구가 낸 문제를 그만둘까요?"를 묻습니다.
 
 **잃을 게 있을 때만 묻습니다** (`attemptCount > 0 && !isGameOver`). 무조건 물으면 기록이 0개일 때도 창이 떠서, 내용을 안 읽고 확인부터 누르는 습관이 듭니다. 정작 물어봐야 할 때 소용이 없어집니다.
 
@@ -156,6 +182,8 @@ function handleToggleUnlimitedMode() {
 - **`onClose={onCancel}`이 반드시 있어야 합니다.** Esc를 누르면 브라우저가 창을 혼자 닫는데, 훅에 알리지 않으면 "화면은 닫혔는데 훅은 아직 묻는 중"으로 어긋납니다
 
 확인 버튼은 강조색(파랑)이 아니라 경고색(`--color-strike`)입니다. 되돌릴 수 없는 조작이기 때문입니다. 그리고 취소를 DOM 순서에서 **앞에** 두었습니다 — `showModal()`이 첫 버튼에 포커스를 주므로, 엔터를 잘못 눌렀을 때 취소가 되는 쪽이 안전합니다. 순서를 바꾸지 마세요.
+
+**버튼 글자도 `reason`에 따라 갈립니다** (`getConfirmLabel`). 받은 문제를 나갈 때만 `그만두기`고 나머지는 `새 판 시작`입니다. "친구가 낸 문제를 그만둘까요?"라고 묻고 버튼에 "새 판 시작"이라고 적혀 있으면 묻는 말과 답하는 말이 서로 다른 이야기를 합니다. `getQuestion` 바로 아래에 두었으니 질문을 고칠 때 버튼도 같이 보세요.
 
 #### 난이도 (자릿수)
 
@@ -194,13 +222,97 @@ function handleToggleUnlimitedMode() {
 
 초보 모드도 **켜고 끄면 새 판이 시작됩니다.** 위의 '게임 규칙 설정 세 가지'를 보세요.
 
+### 문제를 만들어 친구에게 보내기
+
+정답을 직접 골라 링크로 만들면, 그 링크를 받은 친구가 같은 조건으로 그 정답을 맞힙니다. 서버가 없으므로 **문제는 전부 링크 안에 들어 있습니다.**
+
+#### 링크 모양
+
+```
+http://localhost:5173/#play=THPZny
+                             └┴┴┴ ↑↑
+                                │ │└── 초보 모드 (y=켜짐, n=꺼짐)
+                                │ └─── 무제한 기회
+                                └───── 정답 [9, 8, 7, 6]
+```
+
+- 숫자 한 개를 글자 한 개로 바꾸는 표(`DIGIT_TO_LETTER`)를 씁니다. 대문자가 정답, 소문자가 설정입니다
+- 표의 글자는 아무거나 고른 것이 아닙니다. **0과 O, 1과 I처럼 눈으로 헷갈리는 짝은 뺐습니다.** 링크를 손으로 옮겨 적거나 불러줄 때 틀리기 때문입니다
+- **자릿수는 링크에 담지 않습니다.** 정답 글자가 몇 개인지가 곧 자릿수입니다. 둘 다 담으면 "자릿수는 4라는데 정답은 3자리"처럼 어긋난 링크가 생깁니다
+
+**`base64`(`btoa`)로 바꾸지 마세요.** 한때 그쪽을 검토했다가 접었습니다. base64는 감추는 수단이 아니라 표준 형식이라 온라인 디코더에 붙여넣으면 바로 풀립니다. JSON을 담으면 항상 `eyJ`로 시작해서 그 세 글자만 보고 알아보는 사람도 있습니다. 무엇보다 **표는 보면 이해되지만 `btoa`는 왜 그렇게 되는지 설명할 수가 없습니다.**
+
+#### 어디까지 숨기고 어디부터 못 숨기는가
+
+**정답은 원리상 못 숨깁니다.** 친구 브라우저가 "2스트라이크 1볼"을 판정하려면 그 브라우저가 정답을 알고 있어야 하기 때문입니다. 개발자도구로 `answer`를 보면 그냥 보입니다. 해시(SHA 같은 것)로 보내는 방법도 소용없습니다 — 3자리 정답의 경우의 수는 `10×9×8 = 720`가지뿐이라 전부 넣어보면 몇 초면 풀립니다.
+
+그래서 목표는 **"무심코 보이는 것"을 막는 것**까지입니다. 두 겹으로 막습니다:
+
+1. 치환표 — 카톡에 뜬 링크를 눈으로 봐도 정답을 알 수 없습니다
+2. `removePuzzleFromLink()` — **링크를 읽은 직후 주소창에서 지웁니다.** 게임하는 내내 주소창에 흔적이 없어야 합니다
+
+2번은 `location.hash = ''`가 아니라 `history.replaceState`를 씁니다. 앞의 방법은 주소가 바뀐 것이 뒤로가기 기록에 남아서, **뒤로가기 한 번이면 링크가 다시 나타납니다.**
+
+#### 받은 문제는 조건이 잠깁니다
+
+`isSharedPuzzle`이 `true`면 난이도 버튼과 체크박스 둘이 `disabled`가 됩니다. 친구가 정한 조건은 그 문제의 일부라 푸는 사람이 도중에 바꾸면 안 되기 때문입니다.
+
+**화면에서 잠근 것은 훅에서도 막습니다.** `handleChangeDigitCount`·`handleToggleUnlimitedMode`·`handleToggleBeginnerMode` 셋 다 맨 위에서 `isSharedPuzzle`을 확인하고 그냥 돌아갑니다. 화면 쪽 조건이 하나 빠지더라도 받은 문제가 도중에 뒤바뀌면 안 됩니다.
+
+잠긴 표시는 **배경을 회색으로 덮지 않고 `opacity`로** 줍니다. 지금 고른 난이도의 파란 테두리가 그대로 보여야 "몇 자리 문제를 풀고 있는지"를 잠긴 상태에서도 읽을 수 있습니다. 회색으로 덮으면 셋이 똑같아 보여 그 정보가 사라집니다.
+
+**받은 문제에서는 `다시하기`가 `평소 게임으로`가 됩니다.** 정답이 정해진 문제를 같은 답으로 다시 까는 것은 기록만 날리는 일이라, 나가는 길 하나만 두었습니다. 부르는 함수는 `handleRestart` 그대로입니다 — 하는 일이 "정답을 새로 뽑아 새 판"으로 정확히 같고 확인 창에 물어볼 말만 다릅니다.
+
+#### 문제 내는 화면 (`PuzzleComposer`)
+
+`친구에게 문제 내기`를 누르면 게임 화면과 **통째로 갈아 끼워집니다.** App이 조기 `return`으로 갈라놓습니다. 두 화면이 겹쳐 보이는 것이 아니므로 코드에서도 갈라지는 자리가 한눈에 보이는 편이 낫습니다.
+
+**이 화면은 게임 state를 하나도 건드리지 않습니다.** 문제를 만들고 닫으면 진행 중이던 판이 그대로 남아 있습니다. 3자리 게임을 하는 중에 친구에게 5자리 문제를 낼 수 있어야 하기 때문에, `usePuzzleComposer`가 `digitCount`를 따로 갖습니다.
+
+`usePuzzleComposer`를 나눈 이유는 줄 수가 아닙니다. '파일을 나누는 기준' 세 가지에 모두 걸립니다 — "진행 중인 판"과 "아직 시작하지도 않은 남의 판"은 서로 상관없는 일이고, 한쪽을 고칠 때 다른 쪽을 안 읽어도 되며, 출제 화면은 게임과 따로 열립니다.
+
+App에서는 **통째로 받습니다**:
+
+```js
+const { digitCount, ... } = useBaseballGame();   // 게임은 풀어서
+const composer = usePuzzleComposer();            // 출제는 통째로
+```
+
+두 훅에 `digitCount`, `handleChangeDigitCount`처럼 같은 이름이 여럿이라 둘 다 풀면 부딪힙니다. `composer.digitCount`라고 쓰면 **어느 쪽 값인지가 이름에 그대로 보입니다.**
+
+#### 링크와 "복사했다"는 state가 아닙니다
+
+```js
+let puzzleLink = null;
+if (isPickedAnswerFull) {
+  puzzleLink = createPuzzleLink({ answer: pickedAnswer, isUnlimitedMode, isBeginnerMode });
+}
+
+const [copiedLink, setCopiedLink] = useState(null);          // 복사한 링크 자체
+const isLinkCopied = puzzleLink !== null && copiedLink === puzzleLink;
+```
+
+`puzzleLink`를 state로 만들면 정답을 고친 뒤에도 옛 링크가 화면에 남아 **친구에게 엉뚱한 문제를 보내게 됩니다.**
+
+`copiedLink`가 불린이 아닌 이유도 같습니다. `isLinkCopied`를 state로 두면 복사한 뒤 숫자를 바꿔도 "복사했습니다"가 그대로 남습니다. **링크 자체를 담아두면 지금 링크와 비교만 하면 되고, 값을 바꾸는 조작 다섯 군데에 표시를 끄는 코드를 넣지 않아도 됩니다.**
+
+#### 알려진 한계
+
+**앱이 이미 열려 있는 탭에서 다른 `#play=` 링크로 이동하면 화면이 안 바뀝니다.** 주소의 `#` 뒤만 바뀌는 이동은 브라우저가 페이지를 다시 불러오지 않아서, `createInitialGame()`이 다시 실행되지 않기 때문입니다. 새로고침하면 열립니다.
+
+카톡에서 링크를 눌러 새로 여는 경우에는 정상 동작하므로 그대로 두었습니다. 고치려면 `hashchange` 이벤트를 듣는 `useEffect`가 필요한데(구독이라 위 표의 ⭕쪽입니다), 그때 진행 중이던 판을 물어보고 날릴지도 같이 정해야 합니다.
+
 ### 숫자 버튼은 토글입니다
 
 이미 고른 숫자를 다시 누르면 **뺍니다.** 그래서 고른 숫자를 `disabled`로 막지 않습니다. 자릿수를 다 채운 뒤에는 고르지 않은 숫자만 막습니다.
 
+넣고 빼는 규칙 자체는 `gameLogic.js`의 `toggleDigit()`에 있습니다. **게임에서 답을 입력할 때와 문제를 낼 때 정답을 고를 때가 똑같이 움직여야 하는데, 규칙을 두 군데 적어두면 한쪽만 고쳤을 때 두 화면의 버튼이 다르게 동작합니다.**
+
 "초기화" 버튼은 이 토글이 생기면서 없앴습니다. 되살리지 마세요.
 
-화면 위에서부터 `[3자리] [4자리] [5자리]` 한 줄, 입력 칸, 숫자 버튼, `[지우기] [확인]` 한 줄, `[다시하기]` 한 줄입니다. **확인은 `NumberPad` 안에, 난이도와 다시하기는 `App`에 있습니다.** 둘 다 숫자 입력과 무관한 조작이라 숫자 패드에 넣지 않았습니다. 다시하기는 게임 중에도 항상 보이므로 `ResultBanner`에는 따로 버튼을 두지 않습니다(같은 버튼이 두 개가 됩니다).
+화면 위에서부터 `[3자리] [4자리] [5자리]` 한 줄, 입력 칸, 숫자 버튼, `[지우기] [확인]` 한 줄, `[다시하기]`와 `[친구에게 문제 내기]` 한 덩어리입니다. **확인은 `NumberPad` 안에, 난이도와 나머지 둘은 `App`에 있습니다.** 숫자 입력과 무관한 조작이라 숫자 패드에 넣지 않았습니다. 다시하기는 게임 중에도 항상 보이므로 `ResultBanner`에는 따로 버튼을 두지 않습니다(같은 버튼이 두 개가 됩니다).
+
+`[지우기] [확인]`의 확인 버튼 글자는 `submitLabel` props로 받습니다. 같은 패드를 문제 내는 화면도 쓰는데, 다 채웠을 때 하는 일이 게임에서는 "확인"이고 출제에서는 "링크 복사하기"이기 때문입니다.
 
 ### 같은 조합은 두 번 못 냅니다
 
@@ -335,5 +447,6 @@ setAnswer(createAnswer(nextSettings.digitCount));   // digitCount를 읽으면 �
 ## 지금 구현하지 않을 것 (요청 전까지 미리 만들지 말 것)
 
 - 숫자 버튼 롱프레스로 X 표시
-- 배포, 테스트 프레임워크 도입
+- 테스트 프레임워크 도입
+- **배포** — 다만 문제 공유는 배포해야 실제로 쓸 수 있습니다. 지금 만들어지는 링크는 `localhost` 주소라 친구 휴대폰에서 안 열립니다. 기능 자체는 다 되어 있고, `createPuzzleLink()`가 주소를 코드에 적어두지 않고 지금 열린 주소에서 가져오므로 **배포하면 고칠 것 없이 그대로 동작합니다**
 - **성능 최적화(`useMemo`, `useCallback`) — 가독성을 해치므로 사용하지 마세요**
