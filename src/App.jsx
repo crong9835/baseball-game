@@ -218,20 +218,23 @@ function App() {
         체크박스와 기록 목록을 한 덩어리로 묶는다. 초보 모드 체크박스가 바꾸는 대상이
         바로 아래 목록이라는 것을 간격으로 보여주기 위해서다.
 
-        둘 다 "바꾸면 새 판"을 적어둔다. 눌렀을 때 진행 중이던 판이 사라지는데
+        둘 다 "바꾸면 새 게임"을 적어둔다. 눌렀을 때 하던 게임이 사라지는데
         그것이 글자에 안 적혀 있으면 눌러보고 나서야 알게 된다.
+
+        '판'이 아니라 '게임'이라고 적는다. 확인 창과 '그만두고 새 게임' 버튼도 같은 말을 쓴다.
+        한 화면에서 같은 것을 두 이름으로 부르면 서로 다른 것인 줄 알고 읽는다.
       */}
       <section className={styles.historySection}>
         <SettingToggle
           label="초보 모드"
-          description="알아낸 숫자를 버튼에 색으로 · 바꾸면 새 판"
+          description="알아낸 숫자를 버튼에 색으로 · 바꾸면 새 게임"
           isOn={isBeginnerMode}
           isLocked={isSharedPuzzle}
           onToggle={handleToggleBeginnerMode}
         />
         <SettingToggle
           label="무제한 기회"
-          description="맞힐 때까지 시도 · 바꾸면 새 판"
+          description="맞힐 때까지 시도 · 바꾸면 새 게임"
           isOn={isUnlimitedMode}
           isLocked={isSharedPuzzle}
           onToggle={handleToggleUnlimitedMode}

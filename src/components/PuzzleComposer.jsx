@@ -77,7 +77,7 @@ function PuzzleComposer({
       <DifficultySelector digitCount={digitCount} isLocked={false} onSelect={onChangeDigitCount} />
 
       {/*
-        설명에 "바꾸면 새 판"을 적지 않았다. 아직 시작하지도 않은 판이라
+        설명에 "바꾸면 새 게임"을 적지 않았다. 아직 시작하지도 않은 게임이라
         실제로 지워지는 것이 없기 때문이다.
       */}
       <div className={styles.settings}>

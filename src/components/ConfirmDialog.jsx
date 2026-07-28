@@ -46,15 +46,15 @@ function getQuestion(pendingNewGame) {
     return '친구가 낸 문제를 그만둘까요?';
   }
 
-  // 남은 하나는 '다시하기'다. 바뀌는 설정이 없으므로 판을 새로 깐다는 말만 하면 된다.
-  return '새 판을 시작할까요?';
+  // 남은 하나는 '다시하기'다. 바뀌는 설정이 없으므로 새로 시작한다는 말만 하면 된다.
+  return '새 게임을 시작할까요?';
 }
 
 /**
  * 확인 버튼에 적을 글자를 고른다.
  * getConfirmLabel (겟 컨펌 레이블) — get=골라서 돌려준다, label=붙이는 글자
  *
- * "친구가 낸 문제를 그만둘까요?"라고 묻고 버튼에 "새 판 시작"이라고 적혀 있으면,
+ * "친구가 낸 문제를 그만둘까요?"라고 묻고 버튼에 "새 게임 시작"이라고 적혀 있으면,
  * 묻는 말과 답하는 말이 서로 다른 이야기를 한다.
  * getQuestion 바로 아래에 두었으니 질문을 고칠 때 이것도 같이 보라.
  */
@@ -63,7 +63,7 @@ function getConfirmLabel(pendingNewGame) {
     return '그만두기';
   }
 
-  return '새 판 시작';
+  return '새 게임 시작';
 }
 
 /**
@@ -85,7 +85,7 @@ function getDescription(pendingNewGame, attemptCount) {
   }
 
   // 나머지는 기록이 있을 때만 창이 뜨므로 개수를 그대로 적으면 된다.
-  return `지금 판이 지워집니다. ${attemptCount}번 시도한 기록이 사라집니다.`;
+  return `하던 게임이 사라집니다. ${attemptCount}번 시도한 기록이 지워집니다.`;
 }
 
 function ConfirmDialog({ isOpen, pendingNewGame, attemptCount, onConfirm, onCancel }) {
