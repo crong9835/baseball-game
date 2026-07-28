@@ -1,0 +1,152 @@
+/*
+ * 게임 설명 화면의 배치와 판정 색 딱지 모양.
+ * 게임 화면과 통째로 갈아 끼우는 화면이라 바깥 틀을 따로 갖는다.
+ */
+
+/*
+ * 바깥 틀의 폭·여백은 App.module.css의 .app과 같은 값이다.
+ * 화면이 갈아 끼워질 때 폭이 달라지면 옆으로 덜컥 움직인다.
+ * 공통 클래스로 빼지 않은 이유는 PuzzleComposer.module.css의 같은 자리에 적어두었다.
+ */
+.help {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: var(--space-large) var(--space-medium);
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-large);
+}
+
+.header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-medium);
+}
+
+/* 다른 화면의 제목과 같은 값이다. 제목 모양이 다르면 다른 앱으로 넘어온 것처럼 보인다. */
+.title {
+  margin: 0;
+  font-size: 22px;
+  color: var(--color-primary);
+  text-shadow: 3px 3px 0 var(--color-shadow);
+}
+
+/* 문제 내는 화면의 닫기 버튼과 같은 값이다. 나가는 버튼은 어느 화면에서나 같아야 찾기 쉽다. */
+.closeButton {
+  min-height: var(--button-min-size);
+  padding: 0 var(--space-medium);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  font-size: 16px;
+  cursor: pointer;
+}
+
+/* 마우스가 있는 기기에서만 켠다. 이유는 index.css의 (hover: hover) 설명을 보라. */
+@media (hover: hover) {
+  .closeButton:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+  }
+}
+
+/*
+ * 설명 한 덩어리(작은 제목 + 문장).
+ * .help의 gap(--space-large)을 그대로 두면 제목과 그 설명이 떨어져 보인다.
+ */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-small);
+}
+
+/*
+ * 작은 제목은 짧고 굵어서 픽셀 글꼴이 맞다.
+ * 아래 문장은 길어서 보통 글꼴을 쓴다 — 이 화면에서 가장 많이 읽는 곳이다.
+ */
+.sectionTitle {
+  margin: 0;
+  font-size: 16px;
+  color: var(--color-primary);
+}
+
+.text {
+  margin: 0;
+  font-family: var(--font-plain);
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--color-text-muted);
+}
+
+/* 목록 점과 왼쪽 들여쓰기를 없앤다. 색 딱지가 이미 줄의 시작을 표시한다. */
+.judgeList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-small);
+}
+
+/*
+ * 색 딱지와 설명을 한 줄에 놓는다.
+ * align-items를 center로 두면 설명이 두 줄이 됐을 때 딱지가 가운데로 내려가 어긋나 보인다.
+ */
+.judgeRow {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-small);
+}
+
+/*
+ * 판정 이름을 적은 색 딱지.
+ *
+ * flex-shrink: 0이 없으면 좁은 화면에서 딱지가 먼저 찌그러져 글자가 세로로 쪼개진다.
+ * 줄어들 곳은 오른쪽 설명이어야 한다.
+ */
+.chip {
+  flex-shrink: 0;
+  min-width: 84px;
+  padding: var(--space-small);
+  border-radius: var(--radius);
+  font-size: 14px;
+  text-align: center;
+}
+
+/*
+ * 세 색은 초보 모드에서 숫자 버튼에 칠하는 색과 같은 값이다.
+ * 여기서 본 색을 게임 화면에서 그대로 다시 만나야 설명을 읽은 값어치가 있다.
+ */
+.strikeChip {
+  background: var(--color-strike-soft);
+  color: var(--color-strike);
+}
+
+.ballChip {
+  background: var(--color-ball-soft);
+  color: var(--color-ball);
+}
+
+.outChip {
+  background: var(--color-disabled-bg);
+  color: var(--color-disabled-text);
+}
+
+/*
+ * 예로 든 숫자와 결과.
+ * 문장 안에 섞여 있어서 색과 글꼴을 달리하지 않으면 어디가 예인지 눈에 안 들어온다.
+ * 숫자는 짧아서 픽셀 글꼴로 되돌린다(.text가 보통 글꼴로 바꿔놓은 것을 이 두 곳만 되돌린다).
+ */
+.exampleNumber {
+  font-family: var(--font-pixel);
+  color: var(--color-text);
+}
+
+.exampleResult {
+  font-family: var(--font-pixel);
+  color: var(--color-primary);
+}

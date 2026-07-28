@@ -6,9 +6,10 @@
  * 무엇을 내려줄지만 결정한다.
  */
 
-import { MAX_ATTEMPTS } from './constants/gameConstants.js';
+import { MAX_ATTEMPTS, SCREEN } from './constants/gameConstants.js';
 import { useBaseballGame } from './hooks/useBaseballGame.js';
 import { usePuzzleComposer } from './hooks/usePuzzleComposer.js';
+import { useScreen } from './hooks/useScreen.js';
 import DifficultySelector from './components/DifficultySelector.jsx';
 import GuessInput from './components/GuessInput.jsx';
 import NumberPad from './components/NumberPad.jsx';
@@ -17,6 +18,8 @@ import SettingToggle from './components/SettingToggle.jsx';
 import HistoryList from './components/HistoryList.jsx';
 import ConfirmDialog from './components/ConfirmDialog.jsx';
 import PuzzleComposer from './components/PuzzleComposer.jsx';
+import StartScreen from './components/StartScreen.jsx';
+import HelpScreen from './components/HelpScreen.jsx';
 import styles from './App.module.css';
 
 function App() {
@@ -57,6 +60,35 @@ function App() {
    * 내 판의 것인지 친구에게 낼 문제의 것인지가 이름에 그대로 보인다.
    */
   const composer = usePuzzleComposer();
+
+  // 지금 어느 화면을 보여줄지만 갖고 있는 훅. 게임 진행과는 상관없다.
+  const { screen, handleStart, handleOpenHelp, handleCloseHelp, handleGoToStart } = useScreen();
+
+  /*
+   * 시작 화면과 설명 화면을 게임보다 먼저 갈라놓는다.
+   *
+   * 훅 셋은 이 위에서 전부 불러둔다. 조기 return 아래에 훅을 두면 어떤 때는 불리고
+   * 어떤 때는 안 불려서 React가 값을 잃어버린다.
+   *
+   * 친구 링크로 들어온 사람도 시작 화면을 거친다. 링크를 누른 사람이야말로 이 게임을
+   * 처음 보는 사람이라, 규칙을 읽을 기회 없이 판이 시작되면 안 된다. 정답은 앱을 켤 때
+   * 이미 뽑혀 있으므로(useBaseballGame의 createInitialGame) 늦게 시작해도 문제가 없다.
+   */
+  if (screen === SCREEN.START) {
+    return (
+      <StartScreen
+        isSharedPuzzle={isSharedPuzzle}
+        hasPreviousGame={attemptCount > 0}
+        isBrokenPuzzleLink={isBrokenPuzzleLink}
+        onStart={handleStart}
+        onOpenHelp={handleOpenHelp}
+      />
+    );
+  }
+
+  if (screen === SCREEN.HELP) {
+    return <HelpScreen onClose={handleCloseHelp} />;
+  }
 
   /*
    * 출제 화면이 열려 있으면 게임 화면 대신 그것만 그린다.
@@ -105,8 +137,19 @@ function App() {
 
   return (
     <main className={styles.app}>
+      {/*
+        제목을 누르면 시작 화면으로 나간다. 오락기에서 타이틀 화면으로 돌아가는 것과 같다.
+        하던 판은 그대로 남으므로 물어보지 않는다(useScreen의 handleGoToStart 설명을 보라).
+
+        h1 안에 button을 넣었다. 제목이라는 것과 눌린다는 것이 둘 다 필요해서다.
+        h1을 없애고 button만 두면 화면을 읽어주는 프로그램에게 이 화면의 제목이 사라진다.
+      */}
       <header className={styles.header}>
-        <h1 className={styles.title}>숫자 야구</h1>
+        <h1 className={styles.title}>
+          <button type="button" className={styles.titleButton} onClick={handleGoToStart}>
+            숫자 야구
+          </button>
+        </h1>
         <p className={styles.attemptCount}>{attemptText}</p>
       </header>
 

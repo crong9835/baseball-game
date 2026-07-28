@@ -1,0 +1,151 @@
+/*
+ * 시작 화면의 배치와 버튼 두 개의 모양.
+ * 도트 타자 자체의 모양은 짝꿍 파일이 아니라 PixelBatter.module.css가 맡는다.
+ */
+
+/*
+ * 바깥 틀의 폭·여백은 App.module.css의 .app과 같은 값이다.
+ * 시작하기를 누르면 이 화면이 게임 화면으로 통째로 갈아 끼워지는데,
+ * 폭이 다르면 그 순간 화면이 옆으로 덜컥 움직인다.
+ *
+ * text-align은 이 화면에만 있다. 읽을 것이 몇 줄 없고 가운데 그림이 주인공이라,
+ * 왼쪽으로 몰면 그림만 가운데 떠 있는 모양이 된다.
+ */
+.start {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: var(--space-large) var(--space-medium);
+
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+
+  /* 아래 .content를 화면 세로 가운데로 밀어 올리려면 이 틀이 화면 높이만큼 있어야 한다. */
+  min-height: 100svh;
+}
+
+/*
+ * 화면에 담기는 것 전부를 한 겹으로 감싸서 세로 가운데에 놓는다.
+ *
+ * CLAUDE.md는 세로 가운데 정렬을 하지 말라고 하는데, 그 이유는 "기록이 한 줄 쌓일 때마다
+ * 판이 위로 밀려서 누르려던 버튼이 도망간다"이다. 이 화면에는 늘어나는 것이 하나도 없어서
+ * 그 일이 생기지 않는다. 게임 화면에서는 그 규칙을 그대로 지킨다.
+ *
+ * justify-content: center가 아니라 margin-block: auto인 이유:
+ * 앞의 것은 화면보다 내용이 길어지면 위쪽이 화면 밖으로 밀려 나가 스크롤로도 볼 수 없다
+ * (휴대폰을 가로로 돌리면 높이가 400px도 안 된다). auto 여백은 남는 자리가 있을 때만
+ * 나눠 갖고 없으면 0이 되므로, 좁은 화면에서는 저절로 위쪽 정렬로 돌아간다.
+ */
+.content {
+  margin-block: auto;
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-large);
+}
+
+/*
+ * 게임 화면의 제목은 22px인데 여기만 33px이다. 둘 다 픽셀 글꼴이 또렷한 11의 배수다.
+ * 이 화면에는 제목과 경쟁할 것이 없고, 오락기의 첫 화면은 간판이 커야 그렇게 보인다.
+ */
+.title {
+  margin: 0;
+  font-size: 33px;
+  color: var(--color-primary);
+  text-shadow: 4px 4px 0 var(--color-shadow);
+}
+
+/*
+ * 제목과 그 아래 한 줄을 묶는다.
+ * .start의 gap(--space-large)을 그대로 두면 둘이 떨어져서 서로 상관없는 문장처럼 보인다.
+ * 여기서 안쪽 간격만 좁혀서 한 덩어리로 읽히게 한다.
+ */
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-small);
+}
+
+.tagline {
+  margin: 0;
+  font-family: var(--font-plain);
+  font-size: 14px;
+  color: var(--color-text-muted);
+}
+
+/*
+ * 아래 두 안내 줄은 App.module.css의 같은 이름과 모양이 같다.
+ * 공통 파일로 빼지 않은 이유는 그쪽 파일 주석에 적어두었다 — 화면 조각이
+ * App.module.css를 가져다 쓰면 App -> components인 의존 방향이 거꾸로 된다.
+ */
+.sharedPuzzleNotice {
+  margin: 0;
+  padding: var(--space-small) var(--space-medium);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-disabled-bg);
+  color: var(--color-text-muted);
+
+  font-family: var(--font-plain);
+  font-size: 14px;
+}
+
+/* 색만 경고색이다. 회색으로 적으면 그냥 지나치고, 지나치면 남의 문제인 줄 알고 시작한다. */
+.brokenLinkNotice {
+  margin: 0;
+  padding: var(--space-small) var(--space-medium);
+  border: var(--border-width) solid var(--color-strike);
+  border-radius: var(--radius);
+  background: var(--color-disabled-bg);
+  color: var(--color-strike);
+
+  font-family: var(--font-plain);
+  font-size: 14px;
+}
+
+/*
+ * 버튼 둘을 묶는다.
+ * .start의 gap을 그대로 두면 둘이 서로 상관없는 버튼처럼 멀어 보인다.
+ * (App.module.css의 .actionRow와 같은 방식이다)
+ */
+.buttonRow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-small);
+}
+
+/*
+ * 이 화면의 주인공.
+ * 색을 채운 버튼은 지금 이 앱에서 "확인"과 여기 둘뿐이다. 화면마다 하나씩만 둔다.
+ */
+.startButton {
+  width: 100%;
+  min-height: var(--button-min-size);
+  border: var(--border-width) solid var(--color-primary);
+  border-radius: var(--radius);
+  background: var(--color-primary);
+  color: var(--color-primary-text);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* 테두리만 있는 조용한 모양. 게임 화면의 다시하기·문제 내기 버튼과 같은 값이다. */
+.helpButton {
+  width: 100%;
+  min-height: var(--button-min-size);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  font-size: 16px;
+  cursor: pointer;
+}
+
+/* 마우스가 있는 기기에서만 켠다. 이유는 index.css의 (hover: hover) 설명을 보라. */
+@media (hover: hover) {
+  .helpButton:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+  }
+}

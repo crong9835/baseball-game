@@ -25,6 +25,18 @@ export const MAX_ATTEMPTS = 10;
 export const MIN_DIGIT = 0;
 export const MAX_DIGIT = 9;
 
+/*
+ * 지금 보여줄 화면. 앱을 켜면 START다.
+ *
+ * 친구가 링크로 보낸 문제도 START를 먼저 거친다. 링크를 눌러 들어온 사람이야말로
+ * 이 게임을 처음 보는 사람이라, 규칙을 읽을 기회 없이 판이 시작되면 안 된다.
+ */
+export const SCREEN = {
+  START: 'start',
+  HELP: 'help',
+  GAME: 'game',
+};
+
 // 게임이 가질 수 있는 상태.
 export const GAME_STATUS = {
   PLAYING: 'playing',
