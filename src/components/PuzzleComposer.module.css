@@ -1,0 +1,115 @@
+/*
+ * 문제 내는 화면의 배치와 링크 상자 모양.
+ * 게임 화면(App.module.css)과 통째로 갈아 끼우는 화면이라 바깥 틀을 따로 갖는다.
+ */
+
+/*
+ * 바깥 틀은 App.module.css의 .app과 같은 값이다.
+ * 두 화면이 갈아 끼워질 때 폭이나 여백이 달라지면 화면이 덜컥거리기 때문이다.
+ *
+ * 공통 클래스로 빼지 않고 같은 값을 적어둔 이유:
+ * components 쪽에서 App.module.css를 가져다 쓰면 App -> components인 의존 방향이 거꾸로 된다.
+ * 여섯 줄을 아끼려고 그 방향을 뒤집을 이유가 없다.
+ */
+.composer {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: var(--space-large) var(--space-medium);
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-large);
+}
+
+.header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-medium);
+}
+
+.title {
+  margin: 0;
+  font-size: 24px;
+}
+
+/*
+ * 닫기는 만들던 것을 버리고 나가는 버튼이 아니다(고른 숫자는 그대로 남는다).
+ * 그래도 이 화면의 주인공은 아래 "링크 복사하기"이므로 조용한 모양으로 물러나게 한다.
+ */
+.closeButton {
+  min-height: var(--button-min-size);
+  padding: 0 var(--space-medium);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.closeButton:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+/*
+ * 이 화면이 무엇을 하는 곳인지 적어두는 줄.
+ * 처음 들어온 사람은 "정답을 내가 고른다"는 것을 짐작하기 어렵다.
+ */
+.guide {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--color-text-muted);
+}
+
+/*
+ * 체크박스 둘을 묶는다.
+ * .composer의 gap(--space-large)을 그대로 두면 서로 상관없는 설정처럼 멀어 보인다.
+ */
+.settings {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-small);
+}
+
+.linkSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-small);
+}
+
+/*
+ * 링크 글자.
+ *
+ * word-break: break-all이 없으면 긴 주소가 한 덩어리로 취급돼 화면 밖으로 삐져나간다.
+ * (주소에는 띄어쓰기가 없어서 브라우저가 줄을 바꿀 자리를 못 찾는다)
+ *
+ * user-select: all은 글자 아무 데나 눌러도 링크 전체가 한 번에 선택되게 한다.
+ * 복사 버튼이 막혔을 때 손으로 긁어가기 쉬우라고 넣었다.
+ */
+.link {
+  margin: 0;
+  padding: var(--space-medium);
+  border-radius: var(--radius);
+  background: var(--color-disabled-bg);
+  color: var(--color-text-muted);
+  font-size: 14px;
+  line-height: 1.6;
+  word-break: break-all;
+  user-select: all;
+}
+
+/*
+ * 복사했다는 안내.
+ * min-height로 한 줄 자리를 늘 차지하게 해서, 글자가 나타나도 화면이 밀리지 않는다.
+ * (NumberPad의 .notice와 같은 이유다)
+ */
+.copyNotice {
+  margin: 0;
+  min-height: 1.5em;
+  text-align: center;
+  font-size: 14px;
+  color: var(--color-primary);
+}

@@ -82,6 +82,30 @@ export function createAnswer(digitCount) {
 }
 
 /**
+ * 고른 숫자 목록에서 한 숫자를 넣거나 뺀다.
+ * toggleDigit (토글 디짓) — toggle=눌러서 켰다 껐다 하기, digit=숫자 한 자리
+ *
+ * 이미 고른 숫자를 다시 누르면 뺀다. 잘못 누른 숫자를 고치려고 "지우기"까지
+ * 손을 옮기지 않아도 되게 하려는 것이다.
+ *
+ * 게임에서 답을 입력할 때와, 문제를 낼 때 정답을 고를 때 똑같이 쓴다.
+ * 두 곳에 각각 적어두면 한쪽만 고쳤을 때 두 화면의 버튼이 다르게 움직인다.
+ *
+ * 원본을 바꾸지 않고 새 배열을 돌려주는 이유:
+ * React는 배열을 직접 바꾸면(push 같은 것) 바뀐 사실을 알아채지 못한다.
+ */
+export function toggleDigit(pickedDigits, digit) {
+  const isAlreadyPicked = pickedDigits.includes(digit);
+
+  if (isAlreadyPicked) {
+    // filter는 조건에 맞는 것만 남긴 "새 배열"을 돌려준다. 원본은 그대로다.
+    return pickedDigits.filter((pickedDigit) => pickedDigit !== digit);
+  }
+
+  return [...pickedDigits, digit];
+}
+
+/**
  * 배열 안에 같은 숫자가 두 번 들어 있는지 확인한다.
  * hasDuplicateDigit (해즈 듀플리케이트 디짓) — has=가지고 있다, duplicate=중복된, digit=숫자 한 자리
  *

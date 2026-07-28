@@ -65,6 +65,7 @@ function NumberPad({
   isBeginnerMode,
   isGuessFull,
   isGameOver,
+  submitLabel,
   onDigitToggle,
   onBackspace,
   onSubmit,
@@ -124,13 +125,19 @@ function NumberPad({
         >
           지우기
         </button>
+        {/*
+          버튼 글자를 밖에서 받는 이유:
+          이 패드를 게임 화면과 문제 내는 화면이 같이 쓰는데, 다 채웠을 때 하는 일이 다르다.
+          게임에서는 "확인"이고 문제를 낼 때는 "링크 복사하기"다.
+          글자를 여기에 박아두면 패드를 하나 더 복사해야 한다.
+        */}
         <button
           type="button"
           className={styles.submitButton}
           disabled={!canSubmit}
           onClick={onSubmit}
         >
-          확인
+          {submitLabel}
         </button>
       </div>
     </div>

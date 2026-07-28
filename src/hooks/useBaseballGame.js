@@ -14,6 +14,7 @@ import { useState } from 'react';
 import { DEFAULT_DIGIT_COUNT, GAME_STATUS, NEW_GAME_REASON } from '../constants/gameConstants.js';
 import {
   createAnswer,
+  toggleDigit,
   scoreGuess,
   judgeEachDigit,
   collectDigitHints,
@@ -151,19 +152,12 @@ export function useBaseballGame() {
    * 같은 숫자를 한 번 더 누르면 넣지 않고 뺀다.
    * handleDigitToggle (핸들 디짓 토글) — digit=숫자 한 자리, toggle=눌러서 켰다 껐다 하기
    *
-   * 잘못 누른 숫자를 고치려고 "지우기"까지 손을 옮기지 않아도 되게 하려는 것이다.
+   * 넣고 빼는 규칙 자체는 gameLogic의 toggleDigit이 갖고 있다.
+   * 문제를 낼 때 정답을 고르는 화면도 똑같이 움직여야 하는데, 규칙을 두 군데 적어두면
+   * 한쪽만 고쳤을 때 두 화면의 버튼이 다르게 동작한다.
    */
   function handleDigitToggle(digit) {
-    const isAlreadyPicked = currentGuess.includes(digit);
-
-    if (isAlreadyPicked) {
-      // filter는 조건에 맞는 것만 남긴 "새 배열"을 돌려준다. 원본은 그대로다.
-      setCurrentGuess(currentGuess.filter((pickedDigit) => pickedDigit !== digit));
-      return;
-    }
-
-    // push로 배열을 직접 바꾸면 React가 변화를 알아채지 못하므로 항상 새 배열을 만든다.
-    setCurrentGuess([...currentGuess, digit]);
+    setCurrentGuess(toggleDigit(currentGuess, digit));
   }
 
   // handleBackspace (핸들 백스페이스) — backspace=키보드의 한 글자 지우기 키

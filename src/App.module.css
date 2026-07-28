@@ -78,11 +78,15 @@
 }
 
 /*
- * 다시하기는 게임 중에도 항상 눌리는 버튼이다.
+ * 다시하기와 문제 내기는 게임 중에도 항상 눌리는 버튼이다.
  * 확인 버튼처럼 색을 채우면 둘이 경쟁하므로, 테두리만 있는 조용한 모양으로 물러나게 한다.
  * 실수로 판을 날리는 일이 없어야 하기 때문이다.
+ *
+ * 둘을 쉼표로 묶어 한 규칙에 적었다. 모양이 완전히 같은데 규칙을 두 벌 두면
+ * 나중에 색을 바꿀 때 한쪽만 고쳐서 두 버튼이 달라 보이게 된다.
  */
-.restartButton {
+.restartButton,
+.composeButton {
   width: 100%;
   min-height: var(--button-min-size);
   border: 1px solid var(--color-border);
@@ -93,7 +97,20 @@
   cursor: pointer;
 }
 
-.restartButton:hover {
+.restartButton:hover,
+.composeButton:hover {
   border-color: var(--color-primary);
   color: var(--color-primary);
+}
+
+/*
+ * 두 버튼을 묶는 영역.
+ * .app의 gap(--space-large)을 그대로 두면 둘이 서로 상관없는 것처럼 멀어 보인다.
+ * 여기서 안쪽 간격만 좁혀서 "판 바깥의 조작들"이 한 덩어리로 읽히게 한다.
+ * (.historySection과 같은 방식이다. 세로 간격은 margin이 아니라 부모의 gap으로 만든다)
+ */
+.actionRow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-small);
 }

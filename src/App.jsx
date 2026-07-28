@@ -8,6 +8,7 @@
 
 import { MAX_ATTEMPTS } from './constants/gameConstants.js';
 import { useBaseballGame } from './hooks/useBaseballGame.js';
+import { usePuzzleComposer } from './hooks/usePuzzleComposer.js';
 import DifficultySelector from './components/DifficultySelector.jsx';
 import GuessInput from './components/GuessInput.jsx';
 import NumberPad from './components/NumberPad.jsx';
@@ -15,6 +16,7 @@ import ResultBanner from './components/ResultBanner.jsx';
 import SettingToggle from './components/SettingToggle.jsx';
 import HistoryList from './components/HistoryList.jsx';
 import ConfirmDialog from './components/ConfirmDialog.jsx';
+import PuzzleComposer from './components/PuzzleComposer.jsx';
 import styles from './App.module.css';
 
 function App() {
@@ -45,6 +47,48 @@ function App() {
     handleConfirmNewGame,
     handleCancelNewGame,
   } = useBaseballGame();
+
+  /*
+   * 출제 화면의 값들은 통째로 composer라는 이름 하나에 담아서 받는다.
+   *
+   * 위처럼 하나씩 풀어서 받지 않은 이유:
+   * 두 훅에 digitCount, handleChangeDigitCount처럼 이름이 똑같은 것이 여럿 있다.
+   * 둘 다 풀어서 받으면 이름이 부딪혀서 한쪽을 억지로 바꿔야 하고,
+   * 코드를 읽을 때도 이 digitCount가 내 판의 것인지 친구에게 낼 문제의 것인지 알 수 없다.
+   * composer.digitCount라고 쓰면 어느 쪽인지가 이름에 그대로 보인다.
+   */
+  const composer = usePuzzleComposer();
+
+  /*
+   * 출제 화면이 열려 있으면 게임 화면 대신 그것만 그린다.
+   *
+   * 아래 게임 화면을 감싸서 조건을 붙이지 않고 여기서 바로 돌려주는 이유:
+   * 두 화면은 겹쳐 보이는 것이 아니라 통째로 갈아 끼워지는 것이라, 코드에서도
+   * "여기서 갈라진다"가 한눈에 보이는 편이 읽기 쉽다.
+   *
+   * 게임의 state는 하나도 건드리지 않으므로, 문제를 만들고 닫으면
+   * 진행 중이던 판이 그대로 남아 있다.
+   */
+  if (composer.isComposing) {
+    return (
+      <PuzzleComposer
+        digitCount={composer.digitCount}
+        isUnlimitedMode={composer.isUnlimitedMode}
+        isBeginnerMode={composer.isBeginnerMode}
+        pickedAnswer={composer.pickedAnswer}
+        isPickedAnswerFull={composer.isPickedAnswerFull}
+        puzzleLink={composer.puzzleLink}
+        isLinkCopied={composer.isLinkCopied}
+        onClose={composer.handleClose}
+        onDigitToggle={composer.handleDigitToggle}
+        onBackspace={composer.handleBackspace}
+        onChangeDigitCount={composer.handleChangeDigitCount}
+        onToggleUnlimitedMode={composer.handleToggleUnlimitedMode}
+        onToggleBeginnerMode={composer.handleToggleBeginnerMode}
+        onCopyLink={composer.handleCopyLink}
+      />
+    );
+  }
 
   // 무제한 모드에서는 분모가 없으므로 "7회"라고만 적는다.
   // 중첩 삼항연산자 대신 기본값을 먼저 정하고 조건에 맞으면 덮어쓴다.
@@ -109,6 +153,7 @@ function App() {
         isBeginnerMode={isBeginnerMode}
         isGuessFull={isGuessFull}
         isGameOver={isGameOver}
+        submitLabel="확인"
         onDigitToggle={handleDigitToggle}
         onBackspace={handleBackspace}
         onSubmit={handleSubmit}
@@ -118,9 +163,18 @@ function App() {
         다시하기는 숫자 입력과 상관없는 조작이라 NumberPad에 넣지 않고 여기에 둔다.
         게임이 끝나기 전에도 언제든 새 판을 시작할 수 있어야 하므로 항상 보여준다.
       */}
-      <button type="button" className={styles.restartButton} onClick={handleRestart}>
-        {restartLabel}
-      </button>
+      {/*
+        둘 다 "숫자를 맞히는 일" 바깥의 조작이라 한 덩어리로 묶어둔다.
+        문제 내기는 지금 판을 건드리지 않는다. 만들고 닫으면 판이 그대로 남아 있다.
+      */}
+      <div className={styles.actionRow}>
+        <button type="button" className={styles.restartButton} onClick={handleRestart}>
+          {restartLabel}
+        </button>
+        <button type="button" className={styles.composeButton} onClick={composer.handleOpen}>
+          친구에게 문제 내기
+        </button>
+      </div>
 
       <ResultBanner gameStatus={gameStatus} answer={answer} />
 
