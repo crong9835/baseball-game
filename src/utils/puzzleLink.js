@@ -2,7 +2,7 @@
  * 문제(정답과 설정 두 개)를 친구에게 보낼 링크로 바꾸고, 다시 읽어오는 파일.
  * puzzleLink (퍼즐 링크) — puzzle=문제, link=링크(인터넷 주소)
  *
- * 파일이 두 부분으로 나뉜다. 위쪽은 글자를 바꾸기만 하는 순수 함수라 node로 바로 검증할 수 있고,
+ * 위쪽은 글자를 바꾸기만 하는 순수 함수라 node로 바로 검증할 수 있고,
  * 아래쪽은 브라우저의 주소창(window)을 만지는 함수들이다. 섞이지 않게 몰아두었다.
  */
 
@@ -11,17 +11,11 @@ import { isPlayableAnswer } from './gameLogic.js';
 /*
  * 숫자 한 개를 글자 한 개로 바꾸는 표. 정답이 주소창에 그대로 보이지 않게 하려고 쓴다.
  *
- * 이 표를 gameConstants.js에 두지 않은 이유:
- * 그 파일은 로직과 화면 양쪽이 같은 값을 봐야 해서 따로 뺀 것인데, 이 표는 이 파일 말고는
- * 아무도 쓰지 않는다. 표를 보려고 파일을 옮겨 다니는 것보다 쓰는 자리 바로 위에 있는 편이 낫다.
- *
  * 글자를 아무거나 고르지 않았다. 0과 O, 1과 I처럼 눈으로 헷갈리는 짝은 일부러 뺐다.
  * 링크를 손으로 옮겨 적거나 전화로 불러줄 때 틀리기 때문이다.
  *
- * 이 방식이 막아주는 것과 못 막는 것을 분명히 해두자.
- * 주소창을 흘깃 보거나 카톡에 뜬 링크로는 정답을 알 수 없다. 거기까지가 목적이다.
- * 하지만 이 파일을 읽거나 개발자도구로 answer를 들여다보면 그냥 보인다.
- * 브라우저가 스트라이크·볼을 판정하려면 정답을 알고 있어야 하므로, 서버 없이는 원래 못 막는다.
+ * 이 표를 gameConstants.js에 두지 않은 이유는 이 파일 말고는 아무도 쓰지 않기 때문이다.
+ * 어디까지 감춰지고 어디부터 못 감추는지는 CLAUDE.md를 보라.
  */
 const DIGIT_TO_LETTER = {
   0: 'K',
@@ -51,17 +45,14 @@ const PUZZLE_LINK_KEY = 'play';
 
 /**
  * 위의 표를 뒤집어서 "글자 → 숫자" 표를 만든다.
- * createLetterToDigit (크리에이트 레터 투 디짓) — create=만들다, letter=글자, to=~로, digit=숫자 한 자리
+ * createLetterToDigit (크리에이트 레터 투 디짓) — create=만들다, letter=글자, to=~로
  *
- * 표를 손으로 두 개 적지 않는 이유:
- * 나중에 글자 하나를 바꿀 때 한쪽만 고치면, 링크는 멀쩡히 만들어지는데 읽으면 다른 숫자가 나온다.
- * 화면만 봐서는 절대 안 보이는 종류의 버그다.
+ * 표를 손으로 두 개 적으면, 글자 하나를 바꿀 때 한쪽만 고쳤을 경우
+ * 링크는 멀쩡히 만들어지는데 읽으면 다른 숫자가 나온다. 화면만 봐서는 안 보이는 버그다.
  */
 function createLetterToDigit() {
   const letterToDigit = {};
 
-  // Object.entries는 표를 [열쇠, 값] 쌍의 배열로 바꿔준다. 예: [['0', 'K'], ['1', 'X'], ...]
-  // 열쇠는 항상 글자로 나오므로(숫자 0이 아니라 글자 '0') Number로 숫자로 되돌린다.
   for (const [digitText, letter] of Object.entries(DIGIT_TO_LETTER)) {
     letterToDigit[letter] = Number(digitText);
   }
@@ -69,8 +60,7 @@ function createLetterToDigit() {
   return letterToDigit;
 }
 
-// 파일을 읽을 때 딱 한 번만 만든다. 표는 절대 바뀌지 않으므로 부를 때마다 만들 이유가 없다.
-// (NumberPad.jsx의 ALL_DIGITS와 같은 이유다)
+// 표는 절대 바뀌지 않으므로 파일을 읽을 때 딱 한 번만 만든다.
 const LETTER_TO_DIGIT = createLetterToDigit();
 
 /**
@@ -99,8 +89,6 @@ function isSettingLetter(letter) {
  * 예: { answer: [3, 7, 5], isUnlimitedMode: false, isBeginnerMode: true } -> 'QPWny'
  *
  * 자릿수는 따로 담지 않는다. 정답 글자가 몇 개인지가 곧 자릿수이기 때문이다.
- * 둘 다 담으면 "자릿수는 4라는데 정답은 3자리"처럼 서로 어긋난 링크가 생길 수 있다.
- * 진짜 값은 하나만 두는 편이 항상 안전하다.
  *
  * @param {{ answer: number[], isUnlimitedMode: boolean, isBeginnerMode: boolean }} puzzle
  */
@@ -129,7 +117,6 @@ function readAnswerLetters(answerLetters) {
     const digit = LETTER_TO_DIGIT[letter];
 
     /*
-     * 표에 없는 글자를 찾으면 undefined가 나온다.
      * 여기서 if (!digit) 이라고 쓰면 안 된다. 0은 멀쩡한 정답 숫자인데 !0이 true라서
      * 0이 들어간 정답을 전부 잘못된 링크로 판정해 버린다. 그래서 undefined인지만 묻는다.
      */
@@ -152,8 +139,7 @@ function readAnswerLetters(answerLetters) {
  * readPuzzleCode (리드 퍼즐 코드) — read=읽다
  * 예: 'QPWny' -> { answer: [3, 7, 5], isUnlimitedMode: false, isBeginnerMode: true }
  *
- * 잘못된 링크에 오류를 던지지 않고 null을 돌려주는 이유:
- * 부르는 쪽에서 "null이면 평소 게임을 시작한다"고 한 줄로 처리할 수 있다.
+ * 오류를 던지지 않고 null을 돌려주면 부르는 쪽에서 한 줄로 처리할 수 있다.
  * 링크가 망가지는 것은 드문 일이 아니라 흔한 일이다(카톡에서 잘리고, 복사가 덜 되고).
  */
 export function readPuzzleCode(code) {
@@ -161,8 +147,6 @@ export function readPuzzleCode(code) {
     return null;
   }
 
-  // slice에 음수를 넣으면 "뒤에서부터"라는 뜻이다.
-  // slice(-2)는 마지막 두 글자, slice(0, -2)는 마지막 두 글자를 뺀 나머지다.
   const settingLetters = code.slice(-SETTING_LETTER_COUNT);
   const answerLetters = code.slice(0, -SETTING_LETTER_COUNT);
 
@@ -201,9 +185,8 @@ export function readPuzzleCode(code) {
  * createPuzzleLink (크리에이트 퍼즐 링크) — link=링크(인터넷 주소)
  * 예: 'http://localhost:5173/#play=QPWny'
  *
- * 주소를 코드에 적어두지 않고 지금 주소에서 가져오는 이유:
- * 개발 중에는 localhost고 나중에 배포하면 진짜 주소가 되어야 하는데, 이렇게 하면 고칠 것이 없다.
- * (origin=주소의 앞부분, pathname=그 뒤 경로. 둘을 합치면 #앞까지의 주소가 된다)
+ * 주소를 코드에 적어두지 않고 지금 주소에서 가져온다.
+ * 개발 중에는 localhost고 배포하면 진짜 주소가 되어야 하는데, 이렇게 하면 고칠 것이 없다.
  */
 export function createPuzzleLink(puzzle) {
   const code = createPuzzleCode(puzzle);
@@ -217,7 +200,6 @@ export function createPuzzleLink(puzzle) {
  * readPuzzleFromLink (리드 퍼즐 프롬 링크) — from=~으로부터
  */
 export function readPuzzleFromLink() {
-  // window.location.hash는 '#play=QPWny'처럼 # 까지 포함해서 나온다.
   const hash = window.location.hash;
   const prefix = `#${PUZZLE_LINK_KEY}=`;
 
@@ -231,15 +213,28 @@ export function readPuzzleFromLink() {
 }
 
 /**
+ * 지금 열려 있는 주소에 문제를 담으려 한 흔적이 있는가. 글자가 제대로인지는 보지 않는다.
+ * hasPuzzleInLink (해즈 퍼즐 인 링크) — has=가지고 있다, in=~안에
+ *
+ * readPuzzleFromLink는 "문제가 아예 없다"와 "있는데 망가졌다"를 둘 다 null로 돌려준다.
+ * 그래서 망가진 링크를 받은 사람에게 그렇다고 알려주려면 이 함수가 따로 필요하다.
+ */
+export function hasPuzzleInLink() {
+  const prefix = `#${PUZZLE_LINK_KEY}=`;
+
+  return window.location.hash.startsWith(prefix);
+}
+
+/**
  * 주소창에서 문제 부분만 지운다.
  * removePuzzleFromLink (리무브 퍼즐 프롬 링크) — remove=없애다
  *
- * 링크를 열어 게임을 시작한 직후에 부른다. 게임하는 내내 주소창에 정답의 흔적이 없어야
- * 무심코 봤다가 힌트를 얻는 일이 없다.
+ * 푸는 동안에는 일부러 남겨두고, 받은 문제에서 나갈 때만 부른다(startNewGame).
+ * 지워버리면 새로고침 한 번에 그 문제가 사라지고, 나간 뒤에도 남아 있으면
+ * 반대로 새로고침했을 때 그 문제로 다시 끌려 들어간다.
  *
- * location.hash = '' 로 지우지 않는 이유:
- * 그렇게 하면 주소가 바뀐 것이 뒤로가기 기록에 남아서, 뒤로가기 한 번이면 링크가 다시 나타난다.
- * replaceState는 화면을 새로 불러오지도 않고 기록도 남기지 않으면서 주소만 바꾼다.
+ * location.hash = '' 로 지우면 주소가 바뀐 것이 뒤로가기 기록에 남아서,
+ * 뒤로가기 한 번이면 링크가 다시 나타난다. replaceState는 기록을 남기지 않는다.
  */
 export function removePuzzleFromLink() {
   const addressWithoutPuzzle = window.location.origin + window.location.pathname;

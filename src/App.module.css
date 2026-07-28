@@ -5,18 +5,12 @@
  */
 
 .app {
-  /*
-   * 모바일 우선으로 만들되, 넓은 화면에서 글자가 좌우로 너무 벌어지지 않도록 폭을 제한한다.
-   * margin: 0 auto가 남는 공간을 좌우로 나눠 가운데 정렬해 준다.
-   */
+  /* 모바일 우선으로 만들되, 넓은 화면에서 글자가 좌우로 너무 벌어지지 않도록 폭을 제한한다. */
   max-width: 480px;
   margin: 0 auto;
   padding: var(--space-large) var(--space-medium);
 
-  /*
-   * 세로로 쌓이는 요소들의 간격을 gap 하나로 관리한다.
-   * 각 조각에 margin을 주면 "누구의 여백인지" 헷갈리고 margin이 겹치는 문제도 생긴다.
-   */
+  /* 세로 간격은 각 조각의 margin이 아니라 여기 gap 하나로 관리한다. */
   display: flex;
   flex-direction: column;
   gap: var(--space-large);
@@ -30,15 +24,10 @@
 }
 
 /*
- * 제목은 이 화면에서 유일하게 "게임 간판" 역할을 하는 글자다.
- * 오락기 화면에서 제목만 형광색으로 도드라지는 것을 흉내 냈다.
- *
  * 24px이 아니라 22px인 이유:
- * 픽셀 글꼴(갈무리11)은 11의 배수에서 글자가 흐려지지 않고 또렷하게 나온다.
- * 24px은 배수가 아니라 획이 뭉개진다. 22px이 11 x 2다.
+ * 픽셀 글꼴(갈무리11)은 11의 배수에서 또렷하다. 24px은 배수가 아니라 획이 뭉개진다.
  *
- * text-shadow는 흐린 그림자가 아니라 통째로 밀어놓은 검은 글자다.
- * 흐리는 값(세 번째 자리)이 0이라 번지지 않고 각진 덩어리로 남는다.
+ * 그림자는 번짐이 0이라 흐려지지 않고 각진 덩어리로 남는다. 오락기 간판처럼 보이라는 것이다.
  */
 .title {
   margin: 0;
@@ -63,11 +52,8 @@
  * 친구가 낸 문제를 푸는 중이라는 안내 줄.
  *
  * 배경을 옅게 깔아서 게임 화면의 일부가 아니라 "지금 상황을 알려주는 말"로 보이게 한다.
- * 색은 파랑 계열을 쓰지 않았다. 아래 확인 버튼과 난이도 표시가 이미 파랑이라
- * 여기까지 파랗게 하면 어디를 봐야 할지 흐려진다.
- *
- * margin이 아니라 .app의 gap이 위아래 간격을 만든다. 그래서 margin: 0으로 지운다.
- * (p 태그는 브라우저가 기본 margin을 넣어주는데, 그것까지 섞이면 간격이 어긋난다)
+ * 글자에 강조색(형광 초록)을 쓰지 않았다. 확인 버튼과 난이도 표시가 이미 그 색이라
+ * 여기까지 같은 색으로 하면 어디를 봐야 할지 흐려진다.
  */
 .sharedPuzzleNotice {
   margin: 0;
@@ -78,6 +64,28 @@
   color: var(--color-text-muted);
 
   /* 지금 무슨 상황인지를 말해주는 문장이라, 픽셀보다 읽히는 것이 먼저다. */
+  font-family: var(--font-plain);
+  font-size: 14px;
+  text-align: center;
+}
+
+/*
+ * 받은 링크가 망가져 있었다는 안내 줄.
+ *
+ * 위의 .sharedPuzzleNotice와 모양이 같고 색만 다르다. 여섯 줄을 공통 클래스로 빼지 않은
+ * 이유는, 그러면 JSX에서 클래스 두 개를 이어 붙여야 해서 읽을 것이 오히려 늘기 때문이다.
+ *
+ * 색만 경고색이다. 잘못된 상태를 알리는 말이라 회색으로 적으면 그냥 지나친다.
+ * 지나치면 친구 문제인 줄 알고 다른 문제를 계속 풀게 된다.
+ */
+.brokenLinkNotice {
+  margin: 0;
+  padding: var(--space-small) var(--space-medium);
+  border: var(--border-width) solid var(--color-strike);
+  border-radius: var(--radius);
+  background: var(--color-disabled-bg);
+  color: var(--color-strike);
+
   font-family: var(--font-plain);
   font-size: 14px;
   text-align: center;
