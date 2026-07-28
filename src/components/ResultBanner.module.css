@@ -14,12 +14,24 @@
   text-align: center;
 
   background: var(--color-surface);
-  border: 2px solid var(--color-primary);
+
+  /*
+   * 평소에는 없다가 갑자기 나타나는 영역이라 가장 굵은 테두리를 쓴다.
+   * 항상 보이는 것들(버튼, 기록 줄)이 --border-width라서, 이것만 두 배면 저절로 눈에 먼저 들어온다.
+   */
+  border: var(--border-width-thick) solid var(--color-primary);
   border-radius: var(--radius);
+
+  /* 버튼이 아니라서 index.css의 button 규칙이 걸리지 않는다. 여기서 직접 그림자를 준다. */
+  filter: var(--shadow-pixel);
 }
 
+/*
+ * 20px이 아니라 22px인 이유는 제목과 같다.
+ * 픽셀 글꼴(갈무리11)이 11의 배수에서 또렷하고, 22가 11 x 2다.
+ */
 .message {
   margin: 0;
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 700;
 }

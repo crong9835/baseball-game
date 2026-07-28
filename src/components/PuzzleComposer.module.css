@@ -28,9 +28,16 @@
   gap: var(--space-medium);
 }
 
+/*
+ * 게임 화면의 제목(App.module.css의 .title)과 같은 값이다.
+ * 두 화면이 통째로 갈아 끼워지는데 제목 모양이 다르면 다른 앱으로 넘어온 것처럼 보인다.
+ * (바깥 틀 .composer를 .app과 같은 값으로 적어둔 것과 같은 이유다)
+ */
 .title {
   margin: 0;
-  font-size: 24px;
+  font-size: 22px;
+  color: var(--color-primary);
+  text-shadow: 3px 3px 0 var(--color-shadow);
 }
 
 /*
@@ -40,7 +47,7 @@
 .closeButton {
   min-height: var(--button-min-size);
   padding: 0 var(--space-medium);
-  border: 1px solid var(--color-border);
+  border: var(--border-width) solid var(--color-border);
   border-radius: var(--radius);
   background: var(--color-surface);
   color: var(--color-text-muted);
@@ -48,9 +55,12 @@
   cursor: pointer;
 }
 
-.closeButton:hover {
-  border-color: var(--color-primary);
-  color: var(--color-primary);
+/* 마우스가 있는 기기에서만 켠다. 이유는 index.css의 (hover: hover) 설명을 보라. */
+@media (hover: hover) {
+  .closeButton:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+  }
 }
 
 /*
@@ -59,6 +69,8 @@
  */
 .guide {
   margin: 0;
+  /* 이 화면에서 가장 긴 문장이다. 처음 들어온 사람이 읽어야 하는 곳이라 보통 글꼴을 쓴다. */
+  font-family: var(--font-plain);
   font-size: 14px;
   line-height: 1.6;
   color: var(--color-text-muted);
@@ -88,13 +100,20 @@
  *
  * user-select: all은 글자 아무 데나 눌러도 링크 전체가 한 번에 선택되게 한다.
  * 복사 버튼이 막혔을 때 손으로 긁어가기 쉬우라고 넣었다.
+ *
+ * 여기만 고정폭(Mono) 글꼴을 쓰는 이유:
+ * 링크는 뜻이 없는 글자가 죽 이어진 것이라, 글자마다 폭이 다르면 눈이 어디까지 읽었는지 놓친다.
+ * 폭이 같으면 따라 읽기도 쉽고 손으로 옮겨 적기도 쉽다.
+ * (치환표에서 0과 O, 1과 I를 뺀 것과 같은 생각이다 — 링크는 사람이 읽을 수도 있어야 한다)
  */
 .link {
   margin: 0;
   padding: var(--space-medium);
+  border: var(--border-width) solid var(--color-border);
   border-radius: var(--radius);
   background: var(--color-disabled-bg);
-  color: var(--color-text-muted);
+  color: var(--color-text);
+  font-family: var(--font-pixel-mono);
   font-size: 14px;
   line-height: 1.6;
   word-break: break-all;
@@ -110,6 +129,7 @@
   margin: 0;
   min-height: 1.5em;
   text-align: center;
+  font-family: var(--font-plain);
   font-size: 14px;
   color: var(--color-primary);
 }

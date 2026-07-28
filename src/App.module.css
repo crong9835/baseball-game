@@ -29,9 +29,22 @@
   gap: var(--space-medium);
 }
 
+/*
+ * 제목은 이 화면에서 유일하게 "게임 간판" 역할을 하는 글자다.
+ * 오락기 화면에서 제목만 형광색으로 도드라지는 것을 흉내 냈다.
+ *
+ * 24px이 아니라 22px인 이유:
+ * 픽셀 글꼴(갈무리11)은 11의 배수에서 글자가 흐려지지 않고 또렷하게 나온다.
+ * 24px은 배수가 아니라 획이 뭉개진다. 22px이 11 x 2다.
+ *
+ * text-shadow는 흐린 그림자가 아니라 통째로 밀어놓은 검은 글자다.
+ * 흐리는 값(세 번째 자리)이 0이라 번지지 않고 각진 덩어리로 남는다.
+ */
 .title {
   margin: 0;
-  font-size: 24px;
+  font-size: 22px;
+  color: var(--color-primary);
+  text-shadow: 3px 3px 0 var(--color-shadow);
 }
 
 .attemptCount {
@@ -59,9 +72,13 @@
 .sharedPuzzleNotice {
   margin: 0;
   padding: var(--space-small) var(--space-medium);
+  border: var(--border-width) solid var(--color-border);
   border-radius: var(--radius);
   background: var(--color-disabled-bg);
   color: var(--color-text-muted);
+
+  /* 지금 무슨 상황인지를 말해주는 문장이라, 픽셀보다 읽히는 것이 먼저다. */
+  font-family: var(--font-plain);
   font-size: 14px;
   text-align: center;
 }
@@ -89,7 +106,7 @@
 .composeButton {
   width: 100%;
   min-height: var(--button-min-size);
-  border: 1px solid var(--color-border);
+  border: var(--border-width) solid var(--color-border);
   border-radius: var(--radius);
   background: var(--color-surface);
   color: var(--color-text-muted);
@@ -97,10 +114,13 @@
   cursor: pointer;
 }
 
-.restartButton:hover,
-.composeButton:hover {
-  border-color: var(--color-primary);
-  color: var(--color-primary);
+/* 마우스가 있는 기기에서만 켠다. 이유는 index.css의 (hover: hover) 설명을 보라. */
+@media (hover: hover) {
+  .restartButton:hover,
+  .composeButton:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+  }
 }
 
 /*
