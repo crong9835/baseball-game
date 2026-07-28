@@ -55,6 +55,24 @@ function getQuestion(pendingNewGame) {
   return '새 판을 시작할까요?';
 }
 
+/*
+ * 확인 버튼에 적을 글자를 고른다.
+ * getConfirmLabel (겟 컨펌 레이블) — get=골라서 돌려준다, confirm=확인하다, label=붙이는 글자
+ *
+ * 질문과 버튼이 맞물려야 한다. "친구가 낸 문제를 그만둘까요?"라고 묻고 버튼에
+ * "새 판 시작"이라고 적혀 있으면, 묻는 말과 답하는 말이 서로 다른 이야기를 한다.
+ *
+ * getQuestion과 나란히 두었다. 질문을 고치는 사람이 버튼도 같이 보게 하려는 것이다.
+ */
+function getConfirmLabel(pendingNewGame) {
+  if (pendingNewGame.reason === NEW_GAME_REASON.LEAVE_SHARED_PUZZLE) {
+    return '그만두기';
+  }
+
+  // 나머지 넷(다시하기와 설정 셋)은 전부 판을 새로 까는 조작이라 이 말이 그대로 맞다.
+  return '새 판 시작';
+}
+
 function ConfirmDialog({ isOpen, pendingNewGame, attemptCount, onConfirm, onCancel }) {
   /*
    * useRef (유즈레프) — 화면에 그려진 실제 DOM 요소를 붙잡아 두는 훅.
@@ -87,8 +105,10 @@ function ConfirmDialog({ isOpen, pendingNewGame, attemptCount, onConfirm, onCanc
    * 그때는 어차피 화면에 안 보이므로 빈 글자를 넣어 둔다.
    */
   let question = '';
+  let confirmLabel = '';
   if (pendingNewGame !== null) {
     question = getQuestion(pendingNewGame);
+    confirmLabel = getConfirmLabel(pendingNewGame);
   }
 
   return (
@@ -115,7 +135,7 @@ function ConfirmDialog({ isOpen, pendingNewGame, attemptCount, onConfirm, onCanc
           취소
         </button>
         <button type="button" className={styles.confirmButton} onClick={onConfirm}>
-          새 판 시작
+          {confirmLabel}
         </button>
       </div>
     </dialog>
