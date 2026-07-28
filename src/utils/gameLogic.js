@@ -9,6 +9,7 @@ import {
   MIN_DIGIT,
   MAX_DIGIT,
   MAX_ATTEMPTS,
+  DIGIT_COUNT_OPTIONS,
   DIGIT_RESULT,
   GAME_STATUS,
 } from '../constants/gameConstants.js';
@@ -78,6 +79,58 @@ export function createAnswer(digitCount) {
   const answer = shuffledDigits.slice(0, digitCount);
 
   return answer;
+}
+
+/**
+ * 배열 안에 같은 숫자가 두 번 들어 있는지 확인한다.
+ * hasDuplicateDigit (해즈 듀플리케이트 디짓) — has=가지고 있다, duplicate=중복된, digit=숫자 한 자리
+ *
+ * 한 자리씩 보면서 "내 뒤쪽에 나와 같은 숫자가 또 있는가"만 묻는다.
+ * 앞쪽은 볼 필요가 없다. 앞에 같은 것이 있었다면 그 자리를 볼 때 이미 찾았기 때문이다.
+ */
+function hasDuplicateDigit(digitList) {
+  for (const [position, digit] of digitList.entries()) {
+    const laterDigits = digitList.slice(position + 1);
+
+    if (laterDigits.includes(digit)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * 이 배열을 정답으로 써도 되는지 확인한다.
+ * isPlayableAnswer (이즈 플레이어블 앤서) — playable=게임을 할 수 있는, answer=정답
+ *
+ * createAnswer가 만든 정답은 언제나 규칙에 맞으므로 이 함수가 필요 없다.
+ * 필요한 곳은 밖에서 들어온 정답이다. 친구가 보낸 링크는 카톡에서 잘렸을 수도 있고
+ * 누가 글자를 고쳐놨을 수도 있다. 그런 값을 그대로 판에 올리면
+ * 자릿수가 안 맞거나 영영 못 맞히는 게임이 시작된다.
+ *
+ * 중복을 막는 것이 특히 중요하다. "한 자리는 스트라이크·볼·아웃 중 정확히 하나"라는
+ * 이 게임의 판정 전제가 통째로 중복이 없다는 데서 나오기 때문이다.
+ */
+export function isPlayableAnswer(answer) {
+  if (!Array.isArray(answer)) {
+    return false;
+  }
+
+  const isAllowedDigitCount = DIGIT_COUNT_OPTIONS.includes(answer.length);
+  if (!isAllowedDigitCount) {
+    return false;
+  }
+
+  for (const digit of answer) {
+    const isInRange = digit >= MIN_DIGIT && digit <= MAX_DIGIT;
+
+    if (!isInRange) {
+      return false;
+    }
+  }
+
+  return !hasDuplicateDigit(answer);
 }
 
 /**
