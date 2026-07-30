@@ -117,6 +117,7 @@ function PuzzleComposer({
         isBeginnerMode={false}
         isGuessFull={isPickedAnswerFull}
         isGameOver={false}
+        isBlockedByDialog={false}
         submitLabel="링크 복사하기"
         onDigitToggle={onDigitToggle}
         onBackspace={onBackspace}

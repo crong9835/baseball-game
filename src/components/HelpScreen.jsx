@@ -39,6 +39,14 @@ function HelpScreen({ onClose }) {
       </section>
 
       <section className={styles.section}>
+        <h2 className={styles.sectionTitle}>키보드로도 됩니다</h2>
+        <p className={styles.text}>
+          숫자 키를 누르면 그 숫자가 들어가고, 같은 키를 다시 누르면 빠집니다. Backspace는
+          지우기, Enter는 확인입니다. Tab으로 버튼 사이를 옮겨 다닐 수도 있습니다.
+        </p>
+      </section>
+
+      <section className={styles.section}>
         <h2 className={styles.sectionTitle}>결과 읽는 법</h2>
 
         <ul className={styles.judgeList}>

@@ -142,6 +142,15 @@ function App() {
     restartLabel = '그만두고 새 게임';
   }
 
+  /*
+   * 확인 창이 떠 있는 동안에는 뒤쪽 숫자 패드가 키보드를 받지 않아야 한다.
+   * 창 안에서 엔터를 눌렀는데 뒤에서 답이 제출되면 무엇이 일어난 것인지 알 수 없다.
+   *
+   * 둘을 한 이름으로 묶는다. 패드가 알아야 하는 것은 "무엇을 묻는 창인가"가 아니라
+   * "지금 앞을 막고 있는 창이 있는가"뿐이다.
+   */
+  const isDialogOpen = isConfirmingNewGame || composer.isConfirmingOpen;
+
   return (
     <main className={styles.app}>
       {/*
@@ -200,6 +209,7 @@ function App() {
         isBeginnerMode={isBeginnerMode}
         isGuessFull={isGuessFull}
         isGameOver={isGameOver}
+        isBlockedByDialog={isDialogOpen}
         submitLabel="확인"
         onDigitToggle={handleDigitToggle}
         onBackspace={handleBackspace}
