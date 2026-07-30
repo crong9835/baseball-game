@@ -25,8 +25,19 @@ function ResultBanner({ gameStatus, answer }) {
     message = `정답입니다! ${answerText}`;
   }
 
+  /*
+   * 이긴 판은 강조색, 진 판은 경고색 테두리다.
+   *
+   * 글자를 안 읽고 색만 봐도 이겼는지 졌는지 알아야 한다. 둘 다 형광 초록이면
+   * 갑자기 나타난 띠가 좋은 소식인 줄 알고 봤다가 그제야 진 것을 알게 된다.
+   */
+  const bannerClassNames = [styles.resultBanner];
+  if (!hasWon) {
+    bannerClassNames.push(styles.lostBanner);
+  }
+
   return (
-    <div className={styles.resultBanner}>
+    <div className={bannerClassNames.join(' ')}>
       <p className={styles.message}>{message}</p>
     </div>
   );
