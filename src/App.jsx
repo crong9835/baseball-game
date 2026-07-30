@@ -17,6 +17,7 @@ import ResultBanner from './components/ResultBanner.jsx';
 import SettingToggle from './components/SettingToggle.jsx';
 import HistoryList from './components/HistoryList.jsx';
 import ConfirmDialog from './components/ConfirmDialog.jsx';
+import NewGameConfirmDialog from './components/NewGameConfirmDialog.jsx';
 import PuzzleComposer from './components/PuzzleComposer.jsx';
 import StartScreen from './components/StartScreen.jsx';
 import HelpScreen from './components/HelpScreen.jsx';
@@ -65,6 +66,12 @@ function App() {
   const { screen, handleStart, handleOpenHelp, handleCloseHelp, handleGoToStart } = useScreen();
 
   /*
+   * 한 번이라도 냈으면 돌아갈 판이 있는 것이다.
+   * 시작 화면의 버튼 글자와 출제 확인 창이 같은 신호를 본다.
+   */
+  const hasPreviousGame = attemptCount > 0;
+
+  /*
    * 시작 화면과 설명 화면을 게임보다 먼저 갈라놓는다.
    *
    * 훅 셋은 이 위에서 전부 불러둔다. 조기 return 아래에 훅을 두면 어떤 때는 불리고
@@ -78,7 +85,7 @@ function App() {
     return (
       <StartScreen
         isSharedPuzzle={isSharedPuzzle}
-        hasPreviousGame={attemptCount > 0}
+        hasPreviousGame={hasPreviousGame}
         isBrokenPuzzleLink={isBrokenPuzzleLink}
         onStart={handleStart}
         onOpenHelp={handleOpenHelp}
@@ -207,7 +214,15 @@ function App() {
         <button type="button" className={styles.restartButton} onClick={handleRestart}>
           {restartLabel}
         </button>
-        <button type="button" className={styles.composeButton} onClick={composer.handleOpen}>
+        {/*
+          하던 판이 있으면 곧바로 넘어가지 않고 먼저 물어본다.
+          물어볼지 말지는 훅이 정하므로 여기서는 "하던 판이 있는가"만 넘긴다.
+        */}
+        <button
+          type="button"
+          className={styles.composeButton}
+          onClick={() => composer.handleRequestOpen(hasPreviousGame)}
+        >
           친구에게 문제 내기
         </button>
       </div>
@@ -247,12 +262,32 @@ function App() {
         화면 어디에 적어도 위에 겹쳐 뜨지만, 맨 아래에 두어 "평소에는 없는 것"임을
         코드 순서로도 보이게 했다.
       */}
-      <ConfirmDialog
+      <NewGameConfirmDialog
         isOpen={isConfirmingNewGame}
         pendingNewGame={pendingNewGame}
         attemptCount={attemptCount}
         onConfirm={handleConfirmNewGame}
         onCancel={handleCancelNewGame}
+      />
+
+      {/*
+        출제 화면으로 넘어가기 전에 묻는 창. 위의 창과 물어보는 것이 아예 달라서 따로 둔다.
+        둘이 같이 뜰 일은 없다 — 확인 창이 떠 있는 동안에는 뒤쪽 버튼을 누를 수 없다.
+
+        문구를 여기에 직접 적는다. 이유가 하나뿐이라 골라줄 것이 없기 때문이다.
+        버튼(친구에게 문제 내기) · 질문 · 답(문제 내기)이 같은 말로 이어져야 한다.
+
+        "지워집니다"라고 적지 마라. 이 화면은 게임 state를 건드리지 않아서 실제로
+        사라지는 것이 없다. 묻는 것은 잃을까 봐가 아니라 화면이 통째로 갈리기 때문이다.
+      */}
+      <ConfirmDialog
+        isOpen={composer.isConfirmingOpen}
+        question="친구에게 문제를 낼까요?"
+        description="하던 게임은 그대로 남아 있습니다. 문제를 다 만들고 닫으면 이 게임으로 돌아옵니다."
+        confirmLabel="문제 내기"
+        isDestructive={false}
+        onConfirm={composer.handleConfirmOpen}
+        onCancel={composer.handleCancelOpen}
       />
     </main>
   );

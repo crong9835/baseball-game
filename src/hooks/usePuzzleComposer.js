@@ -16,6 +16,9 @@ export function usePuzzleComposer() {
   // 출제 화면이 열려 있는가. 게임 화면과 통째로 갈아 끼우는 데 쓴다.
   const [isComposing, setIsComposing] = useState(false);
 
+  // 출제 화면으로 넘어갈지 물어보는 중인가. 하던 판이 있을 때만 true가 된다.
+  const [isConfirmingOpen, setIsConfirmingOpen] = useState(false);
+
   /*
    * 친구가 풀 판의 규칙. 게임 쪽의 같은 이름들과는 완전히 별개의 값이다.
    * 내가 3자리 게임을 하는 중에도 친구에게는 5자리 문제를 낼 수 있어야 한다.
@@ -68,7 +71,7 @@ export function usePuzzleComposer() {
 
   /**
    * 출제 화면을 연다. 고르던 숫자를 비우고 시작한다.
-   * handleOpen (핸들 오픈) — open=열다
+   * openComposer (오픈 컴포저) — open=열다
    *
    * 앞 문제의 정답이 남아 있으면 그것을 새 문제로 착각하고 그대로 보내게 된다.
    * 설정 셋은 그대로 둔다. 보통 비슷한 난이도로 연달아 내기 때문이다.
@@ -76,11 +79,49 @@ export function usePuzzleComposer() {
    * copyResult도 같이 비운다. 클립보드는 이 앱 바깥에 있어서, 화면을 닫아둔 사이에
    * 다른 것을 복사했는지 알 방법이 없다. 안 비우면 앞과 똑같은 문제를 다시 만들었을 때
    * 누르지도 않은 "복사했습니다"가 떠서, 엉뚱한 글자를 붙여넣어 보내게 된다.
+   *
+   * 화면을 실제로 여는 길은 이 함수 하나뿐이다. 물어보고 들어오는 길과 곧바로 들어오는 길이
+   * 하는 일이 정확히 같아서, 둘로 나눠 두면 나중에 비울 것이 하나 늘 때 한 군데를 빠뜨린다.
+   * (useBaseballGame의 startNewGame과 같은 이유다)
    */
-  function handleOpen() {
+  function openComposer() {
     setIsComposing(true);
     setPickedAnswer([]);
     setCopyResult(null);
+
+    // 어느 경로로 들어와도 창이 닫히도록 여기서 끈다.
+    setIsConfirmingOpen(false);
+  }
+
+  /**
+   * 출제 화면으로 넘어가고 싶다고 말한다. 하던 판이 있으면 먼저 물어본다.
+   * handleRequestOpen (핸들 리퀘스트 오픈) — request=요청하다
+   *
+   * 이 화면은 게임 state를 하나도 건드리지 않아서 실제로 지워지는 것은 없다.
+   * 그런데도 묻는 이유는 게임 화면이 통째로 갈려서, 누른 사람에게는 하던 판이
+   * 날아간 것처럼 보이기 때문이다. 그래서 확인 창에 적는 말도 "지워집니다"가 아니라
+   * "그대로 남아 있습니다"다. 이 경계를 흐트러뜨리지 마라.
+   *
+   * 하던 판이 있는지는 이 훅이 알 수 없어서 인자로 받는다. 게임 state는 useBaseballGame의
+   * 것이고, 이 훅이 그것을 들여다보게 하면 둘을 나눠 둔 이유가 없어진다.
+   */
+  function handleRequestOpen(hasPreviousGame) {
+    if (hasPreviousGame) {
+      setIsConfirmingOpen(true);
+      return;
+    }
+
+    openComposer();
+  }
+
+  // handleConfirmOpen (핸들 컨펌 오픈) — confirm=확인하다, 승낙하다
+  function handleConfirmOpen() {
+    openComposer();
+  }
+
+  // handleCancelOpen (핸들 캔슬 오픈) — cancel=취소하다. 게임 화면에 그대로 남는다.
+  function handleCancelOpen() {
+    setIsConfirmingOpen(false);
   }
 
   // handleClose (핸들 클로즈) — close=닫다. 게임 화면으로 돌아간다.
@@ -157,6 +198,7 @@ export function usePuzzleComposer() {
   // 게임 훅과 같은 이유로 setter는 내보내지 않는다.
   return {
     isComposing,
+    isConfirmingOpen,
     digitCount,
     isUnlimitedMode,
     isBeginnerMode,
@@ -165,7 +207,9 @@ export function usePuzzleComposer() {
     puzzleLink,
     isLinkCopied,
     isCopyFailed,
-    handleOpen,
+    handleRequestOpen,
+    handleConfirmOpen,
+    handleCancelOpen,
     handleClose,
     handleDigitToggle,
     handleBackspace,
